@@ -16,4 +16,20 @@ public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }
+
+  public static class IntakeConstants {
+    public static final int INTAKE_DEPLOY = 41;
+    public static final int INTAKE_ROLLERS = 42;
+    public static final int INDEXER = 43;
+  }
+
+  public static class ShooterConstants {
+    public static final int SHOOTER_1 = 51;
+    public static final int SHOOTER_2 = 52;
+    public static final int FEEDER = 53;
+  }
+
+  public static class ClimberConstants {
+    public static final int CLIMB = 61;
+  }
 }
