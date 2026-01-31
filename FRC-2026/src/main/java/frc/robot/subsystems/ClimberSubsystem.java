@@ -6,4 +6,13 @@ import frc.robot.Constants.ClimberConstants;;
 
 public class ClimberSubsystem extends SubsystemBase {
     
+  @Override
+  public void periodic() {
+    // This method will be called once per scheduler run
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    // This method will be called once per scheduler run during simulation
+  }
 }

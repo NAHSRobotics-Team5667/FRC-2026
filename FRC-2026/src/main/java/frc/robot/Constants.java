@@ -27,6 +27,8 @@ public final class Constants {
     public static final int SHOOTER_1 = 51;
     public static final int SHOOTER_2 = 52;
     public static final int FEEDER = 53;
+
+    public static final int SHOOTER_MAX_RPM = 1;
   }
 
   public static class ClimberConstants {
