@@ -34,5 +34,6 @@ public final class Constants {
 
   public static class ClimberConstants {
     public static final int CLIMB = 61;
+    public static final double CLIMB_DUTYCYCLE = 1;
   }
 }
