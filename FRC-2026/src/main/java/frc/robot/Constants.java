@@ -22,6 +22,8 @@ public final class Constants {
     public static final int INTAKE_ROLLERS = 42;
     public static final int INDEXER = 43;
 
+    public static final double ROLLERKS = 1;
+    public static final double ROLLERKV = 1;
     public static final double ROLLERKP = 1;
     public static final double ROLLERKI = 1;
     public static final double ROLLERKD = 1;
@@ -34,6 +36,13 @@ public final class Constants {
 
     public static final double SHOOTER_MAX_RPM = 1;
     public static final double FEEDER_MAX_RPM = 1;
+
+    public static final double SHOOTER_KP = 1;
+    public static final double SHOOTER_KI = 1;
+    public static final double SHOOTER_KD = 1;
+    public static final double SHOOTER_KS = 1;
+    public static final double SHOOTER_KV = 1;
+    public static final double SHOOTER_KA = 1;
   }
 
   public static class ClimberConstants {

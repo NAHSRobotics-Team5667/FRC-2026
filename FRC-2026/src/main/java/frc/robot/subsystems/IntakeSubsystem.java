@@ -91,7 +91,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     var slot0Configs = new Slot0Configs();
     slot0Configs.kS = IntakeConstants.ROLLERKS;
-    slot0Configs.kV = IntakeConstants.ROLLERKP;
+    slot0Configs.kV = IntakeConstants.ROLLERKV;
     slot0Configs.kP = IntakeConstants.ROLLERKP;
     slot0Configs.kI = IntakeConstants.ROLLERKI;
     slot0Configs.kD = IntakeConstants.ROLLERKD;
