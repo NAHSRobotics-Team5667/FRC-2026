@@ -9,6 +9,12 @@ public class IntakeSubsystem extends SubsystemBase {
   private TalonFX m_rollers;
   private TalonFX m_indexer;
 
+  private double rollerSpeed = IntakeConstants.ROLLER_SPEED;
+  private double indexerSpeed = IntakeConstants.INDEXER_SPEED;
+  private double deployRotations = IntakeConstants.DEPLOY_ROTATIONS;
+  private double retractRotations = IntakeConstants.RETRACT_ROTATIONS;
+
+
   // ========================================================
   // ============= CLASS & SINGLETON SETUP ==================
     
