@@ -1,7 +1,28 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
+import yams.mechanisms.config.FlyWheelConfig;
+import yams.mechanisms.velocity.FlyWheel;
+import yams.motorcontrollers.SmartMotorController;
+import yams.motorcontrollers.SmartMotorControllerConfig;
+import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
+import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
+import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
+import yams.motorcontrollers.remote.TalonFXWrapper;
+
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.RPM;
+
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -11,6 +32,60 @@ public class ShooterSubsystem extends SubsystemBase {
     private TalonFX m_feeder;
     private double targetRPM =  ShooterConstants.SHOOTER_MAX_RPM;
     private double targetFeederRPM = ShooterConstants.FEEDER_MAX_RPM;
+
+    private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+    .withControlMode(ControlMode.CLOSED_LOOP)
+    // Feedback Constants (PID Constants)
+    .withClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+    .withSimClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+    // Feedforward Constants
+    .withFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
+    .withSimFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
+    // Telemetry name and verbosity level
+    .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
+    // Gearing from the motor rotor to final shaft.
+    .withGearing(24/22)
+    // Motor properties to prevent over currenting.
+    .withMotorInverted(false)
+    .withIdleMode(MotorMode.COAST)
+    .withStatorCurrentLimit(Amps.of(40));
+
+    private SmartMotorController shooterMotorController = new TalonFXWrapper(m_shooter1, DCMotor.getKrakenX60(1), smcConfig);
+
+    private final FlyWheelConfig shooterConfig = new FlyWheelConfig(shooterMotorController)
+    .withMOI(MomentOfInertia.ofBaseUnits(0.0058527931, KilogramSquareMeters))
+    // Max Speed
+    .withUpperSoftLimit(RPM.of(3000))
+    // Telemetry Name + Verbosity
+    .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
+    
+    private FlyWheel shooter = new FlyWheel(shooterConfig);
+
+    /**
+     * Gets the current velocity of the shooter
+     * 
+     * @return Shooter velocity
+     * 
+     */
+    public AngularVelocity getVelocity() {return shooter.getSpeed();}
+
+    /**
+     * Sets the current velocity of the shooter
+     * 
+     * @param speed Speed to set
+     * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
+     * 
+     */
+    public Command setVelocity(AngularVelocity speed) {return shooter.setSpeed(speed);}
+
+    /**
+     * Sets the dutycycle of the shooter
+     * 
+     * @param dutyCycle DutyCycle to set
+     * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
+     * 
+     */
+    public Command set(double DutyCycle) {return shooter.set(DutyCycle);}
     
     // ========================================================
     // ============= CLASS & SINGLETON SETUP ==================
@@ -19,15 +94,11 @@ public class ShooterSubsystem extends SubsystemBase {
     private static ShooterSubsystem instance = null;
     
     private ShooterSubsystem() {  
-        // Initialize Shooter Motors
-        m_shooter1 = new TalonFX(ShooterConstants.SHOOTER_1);
-        m_shooter1.setNeutralMode(NeutralModeValue.Coast);
-    
-        m_shooter2 = new TalonFX(ShooterConstants.SHOOTER_2);
-        m_shooter2.setNeutralMode(NeutralModeValue.Coast);
-    
+        // Initialize Feeder Motor
         m_feeder = new TalonFX(ShooterConstants.FEEDER);
         m_feeder.setNeutralMode(NeutralModeValue.Coast);
+
+        m_shooter2.setControl(new Follower(m_shooter1.getDeviceID(), null));
     }
     
     public static ShooterSubsystem getInstance() {
@@ -42,19 +113,6 @@ public class ShooterSubsystem extends SubsystemBase {
     // ================== MOTOR ACTIONS =======================
     
     // SHOOTER ------------------------------------------------
-     
-    /**
-    * Sets speed of the shooter for both sets of wheels. 0-100.
-    * 
-    * @param percentOutput % output for both motors.
-    */
-    public void set(double percentOutput) {
-        double output = percentOutput / 100;
-        targetRPM = output * ShooterConstants.SHOOTER_MAX_RPM;
-    
-        m_shooter1.set(output);
-        m_shooter2.set(output);
-    }
     
     public void setFeeder(double percentOutput) {
         double output = percentOutput / 100;
@@ -75,22 +133,6 @@ public class ShooterSubsystem extends SubsystemBase {
     */
     public double getTargetFeederRPM() {
         return targetFeederRPM;
-    }
-
-    /**
-    * @return RPM of the first set of wheels.
-    */
-    public double getShooter1RPM() {
-        double speed = m_shooter1.getVelocity().getValueAsDouble();
-        return speed;
-    }
-
-    /**
-    * @return RPM of the second set of wheels.
-    */
-    public double getShooter2RPM() {
-        double speed = m_shooter2.getVelocity().getValueAsDouble();
-        return speed;
     }
 
     /**
