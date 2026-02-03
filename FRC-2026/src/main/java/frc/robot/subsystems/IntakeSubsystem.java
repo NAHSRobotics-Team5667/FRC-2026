@@ -35,6 +35,25 @@ public class IntakeSubsystem extends SubsystemBase {
     return instance;
   }
 
+  // ========================================================
+  // ==================== MOTOR ACTIONS =====================
+
+  public void setRoller(boolean isOn) {
+    if (!isOn) {
+      m_rollers.set(rollerSpeed);
+    } else {
+      m_rollers.set(0);
+    }
+  }
+
+  public void setIndexer(boolean isOn) {
+    if (!isOn) {
+      m_rollers.set(indexerSpeed);
+    } else {
+      m_rollers.set(0);
+    }
+  }
+
 
   @Override
   public void periodic() {
