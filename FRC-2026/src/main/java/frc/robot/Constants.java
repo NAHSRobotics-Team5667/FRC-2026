@@ -21,6 +21,11 @@ public final class Constants {
     public static final int INTAKE_DEPLOY = 41;
     public static final int INTAKE_ROLLERS = 42;
     public static final int INDEXER = 43;
+
+    public static final double ROLLER_SPEED = 0; //Speed the intake rollers run at
+    public static final double INDEXER_SPEED = 0; //SPeed the indexer runs at
+    public static final double DEPLOY_ROTATIONS = 0; //How many rotations to deploy the intake
+    public static final double RETRACT_ROTATIONS = 0; //How many rotations to retract the intake
   }
 
   public static class ShooterConstants {
@@ -28,8 +33,8 @@ public final class Constants {
     public static final int SHOOTER_2 = 52;
     public static final int FEEDER = 53;
 
-    public static final double SHOOTER_MAX_RPM = 1;
-    public static final double FEEDER_MAX_RPM = 1;
+    public static final double SHOOTER_MAX_RPM = 1; //Max speed of the shooter
+    public static final double FEEDER_MAX_RPM = 1; //Max speed of the feeder
   }
 
   public static class ClimberConstants {
