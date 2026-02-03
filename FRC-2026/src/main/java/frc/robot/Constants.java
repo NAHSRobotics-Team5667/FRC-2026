@@ -21,6 +21,10 @@ public final class Constants {
     public static final int INTAKE_DEPLOY = 41;
     public static final int INTAKE_ROLLERS = 42;
     public static final int INDEXER = 43;
+
+    public static final double ROLLERKP = 1;
+    public static final double ROLLERKI = 1;
+    public static final double ROLLERKD = 1;
   }
 
   public static class ShooterConstants {
@@ -36,4 +40,11 @@ public final class Constants {
     public static final int CLIMB = 61;
     public static final double CLIMB_DUTYCYCLE = 1;
   }
+
+  public static class SwerveConstants {
+    public static final double turnkP = 100;
+    public static final double turnkI = 0;
+    public static final double turnkD = 0.5;
+  }
+  
 }
