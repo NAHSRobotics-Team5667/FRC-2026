@@ -154,10 +154,12 @@ public class ShooterSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
+        shooter.updateTelemetry();
     }
 
     @Override
     public void simulationPeriodic() {
         // This method will be called once per scheduler run during simulation
+        shooter.simIterate();
     } 
 }

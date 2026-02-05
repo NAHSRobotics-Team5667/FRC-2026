@@ -63,11 +63,6 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
-
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
         joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
@@ -75,8 +70,28 @@ public class RobotContainer {
         joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-        // Reset the field-centric heading on left bumper press.
-        joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+        /* CONTROL SCHEME:
+
+           Left Joystick - Swerve Translation
+           Right Joystick - Swerve Rotation
+
+           X - Reset field-centric heading
+           A - Deploy/Retract Intake
+           B - Outtake
+           Y - Spin up shooter
+
+           LT - Lock on to Hub + Calculate shooter RPM
+           RT - Feed into Shooter
+           LB - ?
+           RB - ?
+
+           Up - Climber Up
+           Right - ?
+           Down - Climber Down
+           Left - ?
+
+        */
+        joystick.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
