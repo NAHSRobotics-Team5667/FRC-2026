@@ -70,6 +70,14 @@ public class ShooterSubsystem extends SubsystemBase {
     public AngularVelocity getVelocity() {return shooter.getSpeed();}
 
     /**
+     * Used in Command file
+     * @param speed
+     */
+    public void setShooterSpeed(AngularVelocity speed) {
+        shooter.setSpeed(speed);
+    }
+
+    /**
      * Sets the current velocity of the shooter
      * 
      * @param speed Speed to set
