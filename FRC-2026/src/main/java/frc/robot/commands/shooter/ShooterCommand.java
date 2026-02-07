@@ -19,7 +19,7 @@ public class ShooterCommand extends Command {
     /**
      * Creates a new ShootCommand.
      * 
-     * @param mode shooting mode. 1: speaker, 2: amp, 3: feed
+     * @param speed Speed the shooter runs at
      */
     public ShooterCommand(AngularVelocity speed) {
         shooter = ShooterSubsystem.getInstance();

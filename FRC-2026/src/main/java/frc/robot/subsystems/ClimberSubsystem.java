@@ -11,40 +11,41 @@ import frc.robot.Constants.ShooterConstants;
 public class ClimberSubsystem extends SubsystemBase {
     
   private TalonFX m_climber;
-      // ========================================================
-      // ============= CLASS & SINGLETON SETUP ==================
+  // ========================================================
+  // ============= CLASS & SINGLETON SETUP ==================
     
-      // SINGLETON ----------------------------------------------
+  // SINGLETON ----------------------------------------------
   
-      private static ClimberSubsystem instance = null;
-      private ClimberSubsystem() {
-       // Initialize Shooter Motors
-        m_climber = new TalonFX(ClimberConstants.CLIMB);
-        m_climber.setNeutralMode(NeutralModeValue.Brake);
-      }
+  private static ClimberSubsystem instance = null;
+  private ClimberSubsystem() {
+    // Initialize Shooter Motors
+    m_climber = new TalonFX(ClimberConstants.CLIMB);
+    m_climber.setNeutralMode(NeutralModeValue.Brake);
     
-      public static ClimberSubsystem getInstance() {
-        if (instance == null) {
-          instance = new ClimberSubsystem();
-        }
+  }
     
-        return instance;
-      }  
+  public static ClimberSubsystem getInstance() {
+    if (instance == null) {
+      instance = new ClimberSubsystem();
+    }
+    
+    return instance;
+  }  
 
-      // ========================================================
-      // ================== MOTOR ACTIONS =======================
+  // ========================================================
+  // ================== MOTOR ACTIONS =======================
     
-      // CLIMBER ------------------------------------------------
+  // CLIMBER ------------------------------------------------
      
-      /**
-       * Sets speed of the climbing motor. 0-100.
-       * 
-       * @param percentOutput % output for the motor.
-       */
-      public void set(double percentOutput) {
-          double output = percentOutput / 100;    
-          m_climber.set(output);    
-        }
+  /**
+  * Sets speed of the climbing motor. 0-100.
+  * 
+  * @param percentOutput % output for the motor.
+  */
+  public void set(double percentOutput) {
+    double output = percentOutput / 100;    
+    m_climber.set(output);    
+  }
   
   @Override
   public void periodic() {

@@ -27,6 +27,9 @@ public final class Constants {
     public static final double ROLLERKP = 1;
     public static final double ROLLERKI = 1;
     public static final double ROLLERKD = 1;
+
+    public static final double ROLLER_VELOCITY = 0;
+    public static final double ROLLER_FEEDFORWARD = 0;
   }
 
   public static class ShooterConstants {

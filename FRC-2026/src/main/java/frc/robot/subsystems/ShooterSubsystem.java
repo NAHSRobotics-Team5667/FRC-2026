@@ -32,68 +32,10 @@ public class ShooterSubsystem extends SubsystemBase {
     private TalonFX m_feeder;
     private double targetRPM =  ShooterConstants.SHOOTER_MAX_RPM;
     private double targetFeederRPM = ShooterConstants.FEEDER_MAX_RPM;
-
-    private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-    .withControlMode(ControlMode.CLOSED_LOOP)
-    // Feedback Constants (PID Constants)
-    .withClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-    .withSimClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-    // Feedforward Constants
-    .withFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
-    .withSimFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
-    // Telemetry name and verbosity level
-    .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
-    // Gearing from the motor rotor to final shaft.
-    .withGearing(24/22)
-    // Motor properties to prevent over currenting.
-    .withMotorInverted(false)
-    .withIdleMode(MotorMode.COAST)
-    .withStatorCurrentLimit(Amps.of(40));
-
-    private SmartMotorController shooterMotorController = new TalonFXWrapper(m_shooter1, DCMotor.getKrakenX60(1), smcConfig);
-
-    private final FlyWheelConfig shooterConfig = new FlyWheelConfig(shooterMotorController)
-    .withMOI(MomentOfInertia.ofBaseUnits(0.0058527931, KilogramSquareMeters))
-    // Max Speed
-    .withUpperSoftLimit(RPM.of(3000))
-    // Telemetry Name + Verbosity
-    .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
-    
-    private FlyWheel shooter = new FlyWheel(shooterConfig);
-
-    /**
-     * Gets the current velocity of the shooter
-     * 
-     * @return Shooter velocity
-     * 
-     */
-    public AngularVelocity getVelocity() {return shooter.getSpeed();}
-
-    /**
-     * Used in Command file
-     * @param speed
-     */
-    public void setShooterSpeed(AngularVelocity speed) {
-        shooter.setSpeed(speed);
-    }
-
-    /**
-     * Sets the current velocity of the shooter
-     * 
-     * @param speed Speed to set
-     * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-     * 
-     */
-    public Command setVelocity(AngularVelocity speed) {return shooter.setSpeed(speed);}
-
-    /**
-     * Sets the dutycycle of the shooter
-     * 
-     * @param dutyCycle DutyCycle to set
-     * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-     * 
-     */
-    public Command set(double DutyCycle) {return shooter.set(DutyCycle);}
+    private SmartMotorControllerConfig smcConfig;
+    private SmartMotorController shooterMotorController;
+    private FlyWheelConfig shooterConfig;
+    private FlyWheel shooter;
     
     // ========================================================
     // ============= CLASS & SINGLETON SETUP ==================
@@ -101,8 +43,35 @@ public class ShooterSubsystem extends SubsystemBase {
     // SINGLETON ----------------------------------------------
     private static ShooterSubsystem instance = null;
     
-    private ShooterSubsystem() {  
-        // Initialize Feeder Motor
+    private ShooterSubsystem() {
+        SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+        .withControlMode(ControlMode.CLOSED_LOOP)
+        // Feedback Constants (PID Constants)
+        .withClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+        .withSimClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+        // Feedforward Constants
+        .withFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
+        .withSimFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
+        // Telemetry name and verbosity level
+        .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
+        // Gearing from the motor rotor to final shaft.
+        .withGearing(24/22)
+        // Motor properties to prevent over currenting.
+        .withMotorInverted(false)
+        .withIdleMode(MotorMode.COAST)
+        .withStatorCurrentLimit(Amps.of(40));
+
+        shooterMotorController = new TalonFXWrapper(m_shooter1, DCMotor.getKrakenX60(1), smcConfig);
+
+        shooterConfig = new FlyWheelConfig(shooterMotorController)
+        .withMOI(MomentOfInertia.ofBaseUnits(0.0058527931, KilogramSquareMeters))
+        // Max Speed
+        .withUpperSoftLimit(RPM.of(3000))
+        // Telemetry Name + Verbosity
+        .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
+
+        shooter = new FlyWheel(shooterConfig);
+
         m_feeder = new TalonFX(ShooterConstants.FEEDER);
         m_feeder.setNeutralMode(NeutralModeValue.Coast);
 
@@ -121,6 +90,14 @@ public class ShooterSubsystem extends SubsystemBase {
     // ================== MOTOR ACTIONS =======================
     
     // SHOOTER ------------------------------------------------
+
+    /**
+     * Sets shooter speed
+     * @param speed
+     */
+    public void setShooterSpeed(AngularVelocity speed) {
+        shooter.setSpeed(speed);
+    }
     
     public void setFeeder(double percentOutput) {
         double output = percentOutput / 100;
@@ -128,6 +105,15 @@ public class ShooterSubsystem extends SubsystemBase {
 
         m_feeder.set(output);
     }
+
+    /**
+     * Sets the dutycycle of the shooter
+     * 
+     * @param dutyCycle DutyCycle to set
+     * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
+     * 
+     */
+    public Command setDutyCycle(double DutyCycle) {return shooter.set(DutyCycle);}
 
     /**
     * @return Target RPM of the main shooter.
@@ -150,6 +136,14 @@ public class ShooterSubsystem extends SubsystemBase {
         double speed = m_feeder.getVelocity().getValueAsDouble();
         return speed;
     }
+
+    /**
+     * Gets the current velocity of the shooter
+     * 
+     * @return Shooter velocity
+     * 
+     */
+    public AngularVelocity getVelocity() {return shooter.getSpeed();}
 
     @Override
     public void periodic() {
