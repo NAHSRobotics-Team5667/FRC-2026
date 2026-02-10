@@ -10,8 +10,27 @@ public class StateManager extends SubsystemBase {
     private IntakeState intakeState; 
     private ClimberState climberState;
 
+    private static StateManager instance = null;
+
     private StateManager() {
         intakeState = IntakeState.RETRACTED;
         climberState = ClimberState.RETRACTED;
     }
+
+    public static StateManager getInstance() {
+        if (instance == null) {
+            instance = new StateManager();
+        }
+
+       return instance;
+    }
+
+    public IntakeState getIntakeState() {
+        return intakeState;
+    }
+
+    public ClimberState getClimberState() {
+        return climberState;
+    }
+
 }

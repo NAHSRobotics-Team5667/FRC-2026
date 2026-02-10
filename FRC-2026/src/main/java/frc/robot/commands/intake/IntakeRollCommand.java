@@ -18,13 +18,15 @@ public class IntakeRollCommand extends Command {
     // Called when command is initiated/first scheduled
     @Override
     public void initialize() {
-
+        intake.setRollerVelocity(IntakeConstants.ROLLER_VELOCITY, IntakeConstants.ROLLER_FEEDFORWARD);
+        intake.setIndexer(100);
     }
 
     // Called when scheduler runs while the command is scheduled
     @Override
     public void execute() {
-
+        intake.setRollerVelocity(0.000, 0.00);
+        intake.setIndexer(0);
     }
 
     // Called when the command is interruped or ended
