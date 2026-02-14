@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
@@ -9,55 +11,16 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class VisionSubsystem extends SubsystemBase {
     private final CommandSwerveDrivetrain drivetrain;
-    // Basic targeting data
-    double tx = LimelightHelpers.getTX("");  // Horizontal offset from crosshair to target in degrees
-    double ty = LimelightHelpers.getTY("");  // Vertical offset from crosshair to target in degrees
-    double ta = LimelightHelpers.getTA("");  // Target area (0% to 100% of image)
-    boolean hasTarget = LimelightHelpers.getTV(""); // Do you have a valid target?
 
-    double txnc = LimelightHelpers.getTXNC("");  // Horizontal offset from principal pixel/point to target in degrees
-    double tync = LimelightHelpers.getTYNC("");  // Vertical offset from principal pixel/point to target in degrees 
     
     public VisionSubsystem(CommandSwerveDrivetrain drivetrain) {
         this.drivetrain = drivetrain;
 
-        // Set a custom crop window for improved performance (-1 to 1 for each value)
-        LimelightHelpers.setCropWindow("", -0.5, 0.5, -0.5, 0.5);
-
-        // Change the camera pose relative to robot center (x forward, y left, z up, degrees)
-        LimelightHelpers.setCameraPose_RobotSpace("",
-            0.5,    // Forward offset (meters)
-            0.0,    // Side offset (meters)
-            0.5,    // Height offset (meters)
-            0.0,    // Roll (degrees)
-            30.0,   // Pitch (degrees)
-            0.0     // Yaw (degrees)
-        );
-
-        // Set AprilTag offset tracking point (meters)
-        LimelightHelpers.setFiducial3DOffset("",
-            0.0,    // Forward offset
-            0.0,    // Side offset
-            0.5     // Height offset
-        );
-
-        // Configure AprilTag detection
-        LimelightHelpers.SetFiducialIDFiltersOverride("", new int[]{1, 2, 3, 4}); // Only track these tag IDs
-        LimelightHelpers.SetFiducialDownscalingOverride("", 2.0f); // Process at half resolution
-
-        // Adjust keystone crop window (-0.95 to 0.95 for both horizontal and vertical)
-        LimelightHelpers.setKeystone("", 0.1, -0.05);
     }
 
+    //===============================================
+    //============= LIMELIGHT METHODS ===============
     
-
-    @Override
-    public void periodic() {
-        updateFromLimelight("limelight-front");
-        updateFromLimelight("limelight-rear");
-
-
-    }
 
     private void updateFromLimelight(String name) {
         if (!LimelightHelpers.getTV(name)) return;
@@ -68,5 +31,32 @@ public class VisionSubsystem extends SubsystemBase {
                 - LimelightHelpers.getLatency_Pipeline(name) / 1000;
 
         drivetrain.addVisionMeasurement(pose, timestamp);
+    }
+
+    public double getDistanceToTag(double targetHeight) {
+        Rotation2d angleToGoal = Rotation2d.fromDegrees(0)
+        .plus(Rotation2d.fromDegrees(LimelightHelpers.getTX("limelight-front")));
+        double distance = (targetHeight - 0) / angleToGoal.getTan();
+        return distance; //Replace zeroes with the degree the limelight is mounted at + height off from the ground
+    }
+
+    public double getRotationToTag(double targetHeight) {
+        double cameraLensHorizontalOffset = LimelightHelpers.getTX("limelight") / getDistanceToTag(targetHeight);
+        double realHorizontalOffset = Math.atan(cameraLensHorizontalOffset / getDistanceToTag(targetHeight));
+        double rotationError = Math.atan(realHorizontalOffset / getDistanceToTag(targetHeight));
+        return rotationError;
+    }
+
+
+    
+
+    
+
+    @Override
+    public void periodic() {
+        updateFromLimelight("limelight-front");
+        updateFromLimelight("limelight-rear");
+
+
     }
 }
