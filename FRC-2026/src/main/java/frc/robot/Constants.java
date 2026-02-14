@@ -47,6 +47,9 @@ public final class Constants {
     public static final double SHOOTER_KV = 1;
     public static final double SHOOTER_KA = 1;
 
+    public static final double HUB_TAG_HEIGHT = 1.124;
+
+
   }
 
   public static class ClimberConstants {

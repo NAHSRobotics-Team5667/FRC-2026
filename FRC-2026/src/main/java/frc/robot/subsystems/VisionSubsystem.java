@@ -47,6 +47,18 @@ public class VisionSubsystem extends SubsystemBase {
         return rotationError;
     }
 
+    public double getTagID(String limelightName) {
+        return LimelightHelpers.getFiducialID(limelightName);
+    }
+
+    public boolean tagInVision(String limelightName) {
+        if (LimelightHelpers.getTV(limelightName)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     
 
