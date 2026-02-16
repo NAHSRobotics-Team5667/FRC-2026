@@ -10,16 +10,23 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
+import frc.robot.Constants.VisionConstants;
+import frc.robot.commands.shooter.HubAlignCommand;
+import frc.robot.commands.shooter.ShooterCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -32,8 +39,6 @@ public class RobotContainer {
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -41,6 +46,11 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final IntakeSubsystem intake = new IntakeSubsystem();
+    public static final VisionSubsystem vision = new VisionSubsystem();
+    public final ShooterSubsystem shooter = new ShooterSubsystem();
+
+    private final Command shootCommand =
+    new ShooterCommand(shooter, drivetrain);
 
     public RobotContainer() {
         configureBindings();
@@ -97,6 +107,10 @@ public class RobotContainer {
         joystick.b().whileTrue(intake.setIntakeAngle(Degrees.of(40)));
         joystick.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
+        joystick.rightTrigger().whileTrue(new HubAlignCommand(
+        drivetrain,
+        getAllianceHubPose()));
+
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
@@ -117,5 +131,11 @@ public class RobotContainer {
             // Finally idle for the rest of auton
             drivetrain.applyRequest(() -> idle)
         );
+    }
+    public static Pose2d getAllianceHubPose() {
+        return DriverStation.getAlliance()
+            .orElse(Alliance.Blue) == Alliance.Blue
+            ? VisionConstants.BLUE_HUB_POSE
+            : VisionConstants.RED_HUB_POSE;
     }
 }

@@ -4,30 +4,44 @@
 
 package frc.robot.commands.shooter;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 
 public class HubAlignCommand extends Command {
 
-    private ShooterSubsystem shooter;
-    private VisionSubsystem limelight;
+    private final CommandSwerveDrivetrain drivetrain;
+    private final Pose2d targetPose;
 
+    private final PIDController xController =
+        new PIDController(3.0, 0, 0);
 
-    /**
-     * Creates a new ShootCommand.
-     * 
-     * @param percentSpeed Speed the feeder runs at
-     */
-    public HubAlignCommand(CommandSwerveDrivetrain drivetrain) {
-        shooter = ShooterSubsystem.getInstance();
-        limelight = new VisionSubsystem(drivetrain);
+    private final PIDController yController =
+        new PIDController(3.0, 0, 0);
 
+    private final PIDController thetaController =
+        new PIDController(4.0, 0, 0);
 
-        // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(shooter);
+    private final SwerveRequest.FieldCentric autoAlignDrive =
+        new SwerveRequest.FieldCentric()
+            .withDeadband(0.0)
+            .withRotationalDeadband(0.0);
+
+    public HubAlignCommand(CommandSwerveDrivetrain drivetrain,
+        Pose2d targetPose) {
+
+        this.drivetrain = drivetrain;
+        this.targetPose = targetPose;
+
+        thetaController.enableContinuousInput(
+            -Math.PI, Math.PI);
+
+        addRequirements(drivetrain);
     }
 
     // Called when command is initiated/first scheduled
@@ -39,7 +53,29 @@ public class HubAlignCommand extends Command {
     // Called when scheduler runs while the command is scheduled
     @Override
     public void execute() {
+        Pose2d current = drivetrain.getState().Pose;
 
+        double xSpeed =
+            xController.calculate(
+                current.getX(),
+                targetPose.getX());
+
+        double ySpeed =
+            yController.calculate(
+                current.getY(),
+                targetPose.getY());
+
+        double omega =
+            thetaController.calculate(
+                current.getRotation().getRadians(),
+                targetPose.getRotation().getRadians());
+
+        drivetrain.applyRequest(() ->
+            autoAlignDrive
+            .withVelocityX(xSpeed)
+            .withVelocityY(ySpeed)
+            .withRotationalRate(omega)
+        );
     }
 
     // Called when the command is interruped or ended
@@ -51,6 +87,17 @@ public class HubAlignCommand extends Command {
     // Called so it should return true when the command will end
     @Override
     public boolean isFinished() {
-        return false;
+            Pose2d current = drivetrain.getState().Pose;
+
+        double positionError =
+            current.getTranslation()
+                .getDistance(targetPose.getTranslation());
+
+        double angleError =
+            Math.abs(current.getRotation()
+                .minus(targetPose.getRotation())
+                .getDegrees());
+
+        return positionError < VisionConstants.AutoAlignTranslationTolerance && angleError < VisionConstants.AutoAlignAngleTolerance;
     }
 }

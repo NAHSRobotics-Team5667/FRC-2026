@@ -7,6 +7,7 @@ package frc.robot.commands.shooter;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ShooterSubsystem;
 import static edu.wpi.first.units.Units.RPM;
 
@@ -15,19 +16,19 @@ public class ShooterCommand extends Command {
 
     private ShooterSubsystem shooter;
     private AngularVelocity shooterSpeed = RPM.of(ShooterConstants.SHOOTER_MAX_RPM);
+    private final CommandSwerveDrivetrain drivetrain;    
 
     /**
      * Creates a new ShootCommand.
      * 
      * @param speed Speed the shooter runs at
      */
-    public ShooterCommand(AngularVelocity speed) {
-        shooter = ShooterSubsystem.getInstance();
-        shooterSpeed = speed;
+    public ShooterCommand(ShooterSubsystem shooter, CommandSwerveDrivetrain drivetrain) {
 
+        this.shooter = shooter;
+        this.drivetrain = drivetrain;
 
-        // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(shooter);
+        addRequirements(shooter); 
     }
 
     // Called when command is initiated/first scheduled
@@ -39,7 +40,12 @@ public class ShooterCommand extends Command {
     // Called when scheduler runs while the command is scheduled
     @Override
     public void execute() {
-        shooter.setShooterSpeed(shooterSpeed);
+        
+        double distance = drivetrain.getDistanceToHub();
+
+        double topRPM = ShooterConstants.getShooterRPM(distance);
+
+        shooter.setShooterSpeed(RPM.of(topRPM));
     }
 
     // Called when the command is interruped or ended

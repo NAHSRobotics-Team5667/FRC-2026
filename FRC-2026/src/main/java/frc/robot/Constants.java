@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -50,8 +51,19 @@ public final class Constants {
     public static final double SHOOTER_KV = 1;
     public static final double SHOOTER_KA = 1;
 
-    public static final double HUB_TAG_HEIGHT = 1.124;
+    private static final InterpolatingDoubleTreeMap shooterRPMMap = new InterpolatingDoubleTreeMap();
 
+    static {
+        // Placeholder values — replace during testing
+        // key(meters) + value(RPM)
+        shooterRPMMap.put(2.0, 3000.0);
+        shooterRPMMap.put(3.0, 3400.0);
+        shooterRPMMap.put(4.0, 3800.0);
+    }
+
+    public static double getShooterRPM(double distance) {
+        return shooterRPMMap.get(distance);
+    }
 
   }
 
