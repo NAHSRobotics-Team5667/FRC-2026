@@ -15,7 +15,6 @@ import static edu.wpi.first.units.Units.RPM;
 public class ShooterCommand extends Command {
 
     private ShooterSubsystem shooter;
-    private AngularVelocity shooterSpeed = RPM.of(ShooterConstants.SHOOTER_MAX_RPM);
     private final CommandSwerveDrivetrain drivetrain;    
 
     /**
@@ -34,7 +33,6 @@ public class ShooterCommand extends Command {
     // Called when command is initiated/first scheduled
     @Override
     public void initialize() {
-        shooter.setShooterSpeed(RPM.of(0));
     }
 
     // Called when scheduler runs while the command is scheduled

@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -65,6 +67,7 @@ public final class Constants {
         return shooterRPMMap.get(distance);
     }
 
+    public static double RPM_TOLERANCE = 50;
   }
 
   public static class ClimberConstants {
@@ -97,6 +100,13 @@ public final class Constants {
 
     public static final double AutoAlignTranslationTolerance = 0.1; // meters
     public static final double AutoAlignAngleTolerance = 5; // degrees
+
+    public static Pose2d getAllianceHubPose() {
+      return DriverStation.getAlliance()
+        .orElse(Alliance.Blue) == Alliance.Blue
+          ? VisionConstants.BLUE_HUB_POSE
+          : VisionConstants.RED_HUB_POSE;
+    }
   }
   
 }

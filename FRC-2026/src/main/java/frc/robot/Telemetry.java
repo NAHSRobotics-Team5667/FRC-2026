@@ -1,12 +1,16 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
+
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
@@ -19,7 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-import frc.robot.Constants.SwerveConstants;
+import frc.robot.subsystems.ShooterSubsystem;
 
 public class Telemetry {
     private final double MaxSpeed;
@@ -29,15 +33,21 @@ public class Telemetry {
      * 
      * @param maxSpeed Maximum speed in meters per second
      */
-    public Telemetry(double maxSpeed) {
+    private final ShooterSubsystem shooter;
+    private final PIDController thetaController;
+
+    public Telemetry(double maxSpeed, ShooterSubsystem shooter, PIDController thetaController) {
         MaxSpeed = maxSpeed;
+        this.shooter = shooter;
+        this.thetaController = thetaController;
+
         SignalLogger.start();
 
-        /* Set up the module state Mechanism2d telemetry */
         for (int i = 0; i < 4; ++i) {
             SmartDashboard.putData("Module " + i, m_moduleMechanisms[i]);
         }
     }
+    
 
     /* What to publish over networktables for telemetry */
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
@@ -56,6 +66,26 @@ public class Telemetry {
     private final NetworkTable table = inst.getTable("Pose");
     private final DoubleArrayPublisher fieldPub = table.getDoubleArrayTopic("robotPose").publish();
     private final StringPublisher fieldTypePub = table.getStringTopic(".type").publish();
+
+    /* Auto Align telemetry */
+    private final NetworkTable alignTable = inst.getTable("AutoAlign");
+    private final DoublePublisher thetaKpPub = alignTable.getDoubleTopic("kP").publish();
+    private final DoublePublisher thetaKiPub = alignTable.getDoubleTopic("kI").publish();
+    private final DoublePublisher thetaKdPub = alignTable.getDoubleTopic("kD").publish();
+    private final DoublePublisher thetaSetpointPub = alignTable.getDoubleTopic("SetpointDeg").publish();
+    private final DoublePublisher thetaErrorPub = alignTable.getDoubleTopic("ErrorDeg").publish();
+    private final DoublePublisher thetaOutputPub = alignTable.getDoubleTopic("OutputRadPerSec").publish();
+    private final DoublePublisher currentHeadingPub = alignTable.getDoubleTopic("CurrentHeadingDeg").publish();
+    private final DoublePublisher desiredHeadingPub = alignTable.getDoubleTopic("DesiredHeadingDeg").publish();
+    private final DoublePublisher omegaPub = alignTable.getDoubleTopic("OmegaCommand").publish();
+    private final BooleanPublisher alignedPub = alignTable.getBooleanTopic("Aligned").publish();
+
+    /* Shooter telemetry */
+    private final NetworkTable shooterTable = inst.getTable("Shooter");
+    private final DoublePublisher shooterTargetPub = shooterTable.getDoubleTopic("TargetRPM").publish();
+    private final DoublePublisher shooterActualPub = shooterTable.getDoubleTopic("ActualRPM").publish();
+    private final DoublePublisher shooterErrorPub = shooterTable.getDoubleTopic("ErrorRPM").publish();
+    private final BooleanPublisher shooterAtSpeedPub = shooterTable.getBooleanTopic("AtSpeed").publish();
 
     /* Mechanisms to represent the swerve module states */
     private final Mechanism2d[] m_moduleMechanisms = new Mechanism2d[] {
@@ -118,5 +148,37 @@ public class Telemetry {
             m_moduleDirections[i].setAngle(state.ModuleStates[i].angle);
             m_moduleSpeeds[i].setLength(state.ModuleStates[i].speedMetersPerSecond / (2 * MaxSpeed));
         }
+
+        /* Auto Align Telemetry */
+
+        double currentHeading = state.Pose.getRotation().getDegrees();
+
+        currentHeadingPub.set(currentHeading);
+
+        thetaKpPub.set(thetaController.getP());
+        thetaKiPub.set(thetaController.getI());
+        thetaKdPub.set(thetaController.getD());
+
+        double errorRad = thetaController.getPositionError();
+        thetaErrorPub.set(Math.toDegrees(errorRad));
+
+        thetaSetpointPub.set(Math.toDegrees(thetaController.getSetpoint()));
+
+        thetaOutputPub.set(thetaController.calculate(
+                state.Pose.getRotation().getRadians()
+        )); // optional if you want raw PID output view
+
+        boolean aligned = Math.abs(errorRad) < Math.toRadians(2);
+        alignedPub.set(aligned);
+
+        /* Shooter Telemetry */
+
+        double target = shooter.gettargetSpeed().in(RPM);
+        double actual = shooter.getVelocity().in(RPM);
+            
+        shooterTargetPub.set(target);
+        shooterActualPub.set(actual);
+        shooterErrorPub.set(target - actual);
+        shooterAtSpeedPub.set(shooter.atSpeedTrigger().getAsBoolean());
     }
 }

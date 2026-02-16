@@ -286,7 +286,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public double getDistanceToHub() {
         Translation2d robot = getState().Pose.getTranslation();
-        Translation2d hub = RobotContainer.getAllianceHubPose().getTranslation();
+        Translation2d hub = VisionConstants.getAllianceHubPose().getTranslation();
         return robot.getDistance(hub);
     }
 

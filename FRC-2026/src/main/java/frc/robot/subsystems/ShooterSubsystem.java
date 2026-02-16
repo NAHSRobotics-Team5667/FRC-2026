@@ -1,12 +1,12 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.ShooterConstants;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -28,54 +28,47 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 public class ShooterSubsystem extends SubsystemBase {
-    private TalonFX m_shooter1;
-    private TalonFX m_shooter2;
-    private TalonFX m_feeder;
-    private double targetRPM =  ShooterConstants.SHOOTER_MAX_RPM;
-    private double targetFeederRPM = ShooterConstants.FEEDER_MAX_RPM;
-    private SmartMotorControllerConfig smcConfig;
-    private SmartMotorController shooterMotorController;
-    private FlyWheelConfig shooterConfig;
-    private FlyWheel shooter;
-    
+    private TalonFX m_shooter1 = new TalonFX(ShooterConstants.SHOOTER_1);
+    private TalonFX m_shooter2 = new TalonFX(ShooterConstants.SHOOTER_2);
+    private TalonFX m_feeder = new TalonFX(ShooterConstants.FEEDER);
+    private AngularVelocity targetSpeed = RPM.of(0);
+    private double targetFeederRPM = 0;
     // ========================================================
     // ============= CLASS & SINGLETON SETUP ==================
     
     // SINGLETON ----------------------------------------------
     private static ShooterSubsystem instance = null;
     
+    SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+    .withControlMode(ControlMode.CLOSED_LOOP)
+    // Feedback Constants (PID Constants)
+    .withClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+    .withSimClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+    // Feedforward Constants
+    .withFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
+    .withSimFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
+    // Telemetry name and verbosity level
+    .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
+    // Gearing from the motor rotor to final shaft.
+    .withGearing(24.0/22)
+    // Motor properties to prevent over currenting.
+    .withMotorInverted(false)
+    .withIdleMode(MotorMode.COAST)
+    .withStatorCurrentLimit(Amps.of(40));
+    
+    private SmartMotorController shooterMotorController = new TalonFXWrapper(m_shooter1, DCMotor.getKrakenX60(1), smcConfig);
+
+    private final FlyWheelConfig shooterConfig = new FlyWheelConfig(shooterMotorController)
+    .withMOI(MomentOfInertia.ofBaseUnits(0.0058527931, KilogramSquareMeters))
+    // Max Speed
+    .withUpperSoftLimit(RPM.of(3000))
+    // Telemetry Name + Verbosity
+    .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
+
+    private FlyWheel shooter = new FlyWheel(shooterConfig);
+
     public ShooterSubsystem() {
-        SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-        .withControlMode(ControlMode.CLOSED_LOOP)
-        // Feedback Constants (PID Constants)
-        .withClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-        .withSimClosedLoopController(ShooterConstants.SHOOTER_KP, ShooterConstants.SHOOTER_KI, ShooterConstants.SHOOTER_KD, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-        // Feedforward Constants
-        .withFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
-        .withSimFeedforward(new SimpleMotorFeedforward(ShooterConstants.SHOOTER_KS, ShooterConstants.SHOOTER_KV, ShooterConstants.SHOOTER_KA))
-        // Telemetry name and verbosity level
-        .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
-        // Gearing from the motor rotor to final shaft.
-        .withGearing(24/22)
-        // Motor properties to prevent over currenting.
-        .withMotorInverted(false)
-        .withIdleMode(MotorMode.COAST)
-        .withStatorCurrentLimit(Amps.of(40));
-
-        shooterMotorController = new TalonFXWrapper(m_shooter1, DCMotor.getKrakenX60(1), smcConfig);
-
-        shooterConfig = new FlyWheelConfig(shooterMotorController)
-        .withMOI(MomentOfInertia.ofBaseUnits(0.0058527931, KilogramSquareMeters))
-        // Max Speed
-        .withUpperSoftLimit(RPM.of(3000))
-        // Telemetry Name + Verbosity
-        .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
-
-        shooter = new FlyWheel(shooterConfig);
-
-        m_feeder = new TalonFX(ShooterConstants.FEEDER);
         m_feeder.setNeutralMode(NeutralModeValue.Coast);
-
         m_shooter2.setControl(new Follower(m_shooter1.getDeviceID(), null));
     }
     
@@ -86,6 +79,10 @@ public class ShooterSubsystem extends SubsystemBase {
     
         return instance;
     }
+    
+    private final Trigger atSpeed = new Trigger(
+    () -> shooter.isNear(targetSpeed, RPM.of(100)).getAsBoolean()
+    );
     
     // ========================================================
     // ================== MOTOR ACTIONS =======================
@@ -98,6 +95,7 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void setShooterSpeed(AngularVelocity speed) {
         shooter.setSpeed(speed);
+        targetSpeed = speed;
     }
     
     public void setFeeder(double percentOutput) {
@@ -119,8 +117,12 @@ public class ShooterSubsystem extends SubsystemBase {
     /**
     * @return Target RPM of the main shooter.
     */
-    public double getTargetRPM() {
-        return targetRPM;
+    public AngularVelocity gettargetSpeed() {
+        return targetSpeed;
+    }
+
+    public double getCurrentRPM() {
+        return shooter.getSpeed().in(RPM);
     }
 
     /**
@@ -145,6 +147,10 @@ public class ShooterSubsystem extends SubsystemBase {
      * 
      */
     public AngularVelocity getVelocity() {return shooter.getSpeed();}
+
+    public Trigger atSpeedTrigger() {
+        return atSpeed;
+    }
 
     @Override
     public void periodic() {
