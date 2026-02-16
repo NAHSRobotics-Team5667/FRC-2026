@@ -20,12 +20,17 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.Constants.ClimberConstants.ClimbDirection;
 import frc.robot.commands.shooter.ShooterCommand;
+import frc.robot.commands.shooter.FeederCommand;
+import frc.robot.commands.intake.IntakeRollCommand;
+import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.ClimberSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -48,6 +53,7 @@ public class RobotContainer {
     public final IntakeSubsystem intake = new IntakeSubsystem();
     public static final VisionSubsystem vision = new VisionSubsystem();
     public final ShooterSubsystem shooter = new ShooterSubsystem();
+    public final ClimberSubsystem cllimber = ClimberSubsystem.getInstance();
 
     private final Telemetry logger = new Telemetry(MaxSpeed, shooter, thetaController);
 
@@ -127,9 +133,11 @@ public class RobotContainer {
         joystick.a().whileTrue(intake.setIntakeAngle(Degrees.of(0)));
         joystick.b().whileTrue(intake.setIntakeAngle(Degrees.of(40)));
         joystick.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-
-        joystick.leftTrigger()
-        .whileTrue(new ShooterCommand(shooter, drivetrain));
+        joystick.leftTrigger().whileTrue(new ShooterCommand(shooter, drivetrain));
+        joystick.rightTrigger().whileTrue(new FeederCommand(100));
+        joystick.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP));
+        joystick.povDown().whileTrue(new ClimberCommand(ClimbDirection.DOWN));
+        
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

@@ -72,7 +72,7 @@ public final class Constants {
 
   public static class ClimberConstants {
     public static final int CLIMB = 61;
-    public static final double CLIMB_DUTYCYCLE = 1;
+    public static final double CLIMB_FEEDFORWARD = 1;
     public static final double CLIMB_SPEED = 1;
 
     public static final double CLIMB_KS = 1;
@@ -80,6 +80,11 @@ public final class Constants {
     public static final double CLIMB_KP = 1;
     public static final double CLIMB_KI = 1;
     public static final double CLIMB_KD = 1;
+
+    public enum ClimbDirection {
+      UP,
+      DOWN
+    }
   }
 
   public static class SwerveConstants {

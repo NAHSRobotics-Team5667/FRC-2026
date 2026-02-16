@@ -5,11 +5,11 @@ import frc.robot.Constants.ClimberConstants;
 import frc.robot.subsystems.ClimberSubsystem;
 public class ClimberCommand extends Command {
 
-    private String direction;
+    private ClimberConstants.ClimbDirection direction;
     private ClimberSubsystem climber;
     private double velocity;
 
-    public ClimberCommand(String direction) {
+    public ClimberCommand(ClimberConstants.ClimbDirection direction) {
         // addRequirement() - prevent two commands from being run at the same time
         this.direction = direction;
         climber = ClimberSubsystem.getInstance();
@@ -19,7 +19,7 @@ public class ClimberCommand extends Command {
     // Called when command is initiated/first scheduled
     @Override
     public void initialize() {
-        if (direction.equals("down")) {
+        if (direction.equals(ClimberConstants.ClimbDirection.DOWN)) {
             velocity = -ClimberConstants.CLIMB_SPEED;
         } else {
             velocity = ClimberConstants.CLIMB_SPEED;
@@ -29,13 +29,13 @@ public class ClimberCommand extends Command {
     // Called when scheduler runs while the command is scheduled
     @Override
     public void execute() {
-
+        climber.setVelocity(velocity, ClimberConstants.CLIMB_FEEDFORWARD);
     }
 
     // Called when the command is interruped or ended
     @Override
     public void end(boolean interrupted) {
-
+        climber.setVelocity(0, 0);
     }
 
     // Called so it should return true when the command will end
