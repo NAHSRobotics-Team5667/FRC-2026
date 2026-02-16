@@ -21,32 +21,6 @@ public class VisionSubsystem extends SubsystemBase {
     //===============================================
     //============= LIMELIGHT METHODS ===============
 
-    public double getDistanceToTag(double targetHeight) {
-        Rotation2d angleToGoal = Rotation2d.fromDegrees(0)
-        .plus(Rotation2d.fromDegrees(LimelightHelpers.getTX("limelight-front")));
-        double distance = (targetHeight - 0) / angleToGoal.getTan();
-        return distance; //Replace zeroes with the degree the limelight is mounted at + height off from the ground
-    }
-
-    public double getRotationToTag(double targetHeight) {
-        double cameraLensHorizontalOffset = LimelightHelpers.getTX("limelight") / getDistanceToTag(targetHeight);
-        double realHorizontalOffset = Math.atan(cameraLensHorizontalOffset / getDistanceToTag(targetHeight));
-        double rotationError = Math.atan(realHorizontalOffset / getDistanceToTag(targetHeight));
-        return rotationError;
-    }
-
-    public double getTagID(String limelightName) {
-        return LimelightHelpers.getFiducialID(limelightName);
-    }
-
-    public boolean tagInVision(String limelightName) {
-        if (LimelightHelpers.getTV(limelightName)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     
     @Override
     public void periodic() {
