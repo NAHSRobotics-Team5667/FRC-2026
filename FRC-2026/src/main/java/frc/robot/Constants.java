@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -65,9 +68,23 @@ public final class Constants {
   }
 
   public static class SwerveConstants {
-    public static final double turnkP = 100;
-    public static final double turnkI = 0;
-    public static final double turnkD = 0.5;
+    public static double turnkP = 100;
+    public static double turnkI = 0;
+    public static double turnkD = 0.5;
+  }
+
+  public static class VisionConstants {
+    public static final String LIMELIGHT_FRONT_NAME = "limelight-front";
+    public static final String LIMELIGHT_REAR_NAME = "limelight-rear";
+
+    public static final Pose2d BLUE_HUB_POSE =
+      new Pose2d(4.6192143328, 4.0378468646, Rotation2d.fromDegrees(0));
+
+    public static final Pose2d RED_HUB_POSE =
+      new Pose2d(11.9080899252, 4.0394513572, Rotation2d.fromDegrees(180));
+
+    public static final double AutoAlignTranslationTolerance = 0.1; // meters
+    public static final double AutoAlignAngleTolerance = 5; // degrees
   }
   
 }

@@ -37,59 +37,47 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class IntakeSubsystem extends SubsystemBase {
 
-  private SmartMotorControllerConfig smcConfig;
+  private TalonFX deployMotor = new TalonFX(IntakeConstants.INTAKE_DEPLOY);
+  private TalonFX rollerMotor = new TalonFX(IntakeConstants.INTAKE_ROLLERS);
+  private TalonFX indexerMotor = new TalonFX(IntakeConstants.INDEXER);
+  
+  private static IntakeSubsystem instance = null;
 
-  private TalonFX deployMotor;
-  private TalonFX rollerMotor;
-  private TalonFX indexerMotor;
+  private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+  .withControlMode(ControlMode.CLOSED_LOOP)
+  .withClosedLoopController(150,0,0,DegreesPerSecond.of(90),DegreesPerSecondPerSecond.of(45))
+  .withSimClosedLoopController(150,0,0,DegreesPerSecond.of(90),DegreesPerSecondPerSecond.of(45))
+  .withFeedforward(new ArmFeedforward(0,0,0))
+  .withSimFeedforward(new ArmFeedforward(0,0,0))
+  .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
+  .withGearing(new MechanismGearing(GearBox.fromReductionStages(38/14,16)))
+  .withMotorInverted(false)
+  .withIdleMode(MotorMode.BRAKE)
+  .withStatorCurrentLimit(Amps.of(40))
+  .withClosedLoopRampRate(Seconds.of(0.25))
+  .withOpenLoopRampRate(Seconds.of(0.25));
 
-  VelocityVoltage m_request;
+  private VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
-  private SmartMotorController talonMotorController;
+  private SmartMotorController talonMotorController = new TalonFXWrapper(deployMotor, DCMotor.getKrakenX60Foc(1), smcConfig);
 
-  private ArmConfig armCfg;
+  private ArmConfig armCfg = new ArmConfig(talonMotorController)
+  .withSoftLimits(Degrees.of(0), Degrees.of(40))
+  .withHardLimit(Degrees.of(0), Degrees.of(80))
+  .withStartingPosition(Degrees.of(0))
+  .withLength(Inches.of(8))
+  .withMass(Pounds.of(8))
+  .withTelemetry("Arm", TelemetryVerbosity.HIGH);
 
   private Arm arm = new Arm(armCfg);
 
-  public Command setIntakeAngle(Angle angle) {return arm.setAngle(angle);}
+  public Command setIntakeAngle(Angle angle) { return arm.setAngle(angle);}
   
   public Command setIntakeDeploy(double dutycycle) { return arm.set(dutycycle);}
 
   public Command sysId() { return arm.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));}
-  
-  private static IntakeSubsystem instance = null;
 
   public IntakeSubsystem() {
-    deployMotor = new TalonFX(IntakeConstants.INTAKE_DEPLOY);
-    rollerMotor = new TalonFX(IntakeConstants.INTAKE_ROLLERS);
-    indexerMotor = new TalonFX(IntakeConstants.INDEXER);
-
-    smcConfig = new SmartMotorControllerConfig(this)
-    .withControlMode(ControlMode.CLOSED_LOOP)
-    .withClosedLoopController(50,0,0,DegreesPerSecond.of(90),DegreesPerSecondPerSecond.of(45))
-    .withSimClosedLoopController(50,0,0,DegreesPerSecond.of(90),DegreesPerSecondPerSecond.of(45))
-    .withFeedforward(new ArmFeedforward(0,0,0))
-    .withSimFeedforward(new ArmFeedforward(0,0,0))
-    .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
-    .withGearing(new MechanismGearing(GearBox.fromReductionStages(3,38/14)))
-    .withMotorInverted(false)
-    .withIdleMode(MotorMode.BRAKE)
-    .withStatorCurrentLimit(Amps.of(40))
-    .withClosedLoopRampRate(Seconds.of(0.25))
-    .withOpenLoopRampRate(Seconds.of(0.25));
-
-    m_request = new VelocityVoltage(0).withSlot(0);
-
-    talonMotorController = new TalonFXWrapper(deployMotor, DCMotor.getKrakenX60Foc(1), smcConfig);
-
-    armCfg = new ArmConfig(talonMotorController)
-    .withSoftLimits(Degrees.of(-100), Degrees.of(20))
-    .withHardLimit(Degrees.of(-120), Degrees.of(0))
-    .withStartingPosition(Degrees.of(0))
-    .withLength(Inches.of(8))
-    .withMass(Pounds.of(8))
-    .withTelemetry("Arm", TelemetryVerbosity.HIGH);
-
     // Intake Roller Configuration for Velocity Control
     var slot0Configs = new Slot0Configs();
     slot0Configs.kS = IntakeConstants.ROLLERKS;
@@ -120,20 +108,6 @@ public class IntakeSubsystem extends SubsystemBase {
   public void setIndexer(double percentOutput) {
     double output = percentOutput / 100;    
     indexerMotor.set(output);    
-  }
-
-  // INTAKE DEPLOY --------------------------------------------
-
-  public void setAngle(Angle angle) {
-    arm.setAngle(angle);
-  }
-
-  public void setDutyCycle(double dutyCycle) {
-    arm.set(dutyCycle);
-  }
-
-  public void setSysID() {
-    arm.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
   }
 
   @Override

@@ -1,37 +1,25 @@
 package frc.robot.subsystems;
 
+import java.util.Optional;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.Constants.VisionConstants;
 
 
 public class VisionSubsystem extends SubsystemBase {
-    private final CommandSwerveDrivetrain drivetrain;
+    private String front = VisionConstants.LIMELIGHT_FRONT_NAME;
+    private String rear = VisionConstants.LIMELIGHT_REAR_NAME;
 
-    
-    public VisionSubsystem(CommandSwerveDrivetrain drivetrain) {
-        this.drivetrain = drivetrain;
-
-    }
+    private Pose2d bestPose = null;
+    private double bestTimestamp = 0.0;
+    private boolean hasMeasurement = false;
+    private int tagCount = 0;
 
     //===============================================
     //============= LIMELIGHT METHODS ===============
-    
-
-    private void updateFromLimelight(String name) {
-        if (!LimelightHelpers.getTV(name)) return;
-
-        Pose2d pose = LimelightHelpers.getBotPose2d_wpiBlue(name);
-        double timestamp = Timer.getFPGATimestamp()
-                - LimelightHelpers.getLatency_Capture(name) / 1000
-                - LimelightHelpers.getLatency_Pipeline(name) / 1000;
-
-        drivetrain.addVisionMeasurement(pose, timestamp);
-    }
 
     public double getDistanceToTag(double targetHeight) {
         Rotation2d angleToGoal = Rotation2d.fromDegrees(0)
@@ -59,16 +47,56 @@ public class VisionSubsystem extends SubsystemBase {
         }
     }
 
-
     
-
-    
-
     @Override
     public void periodic() {
-        updateFromLimelight("limelight-front");
-        updateFromLimelight("limelight-rear");
 
+        var frontPoseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(front);
+        var rearPoseEstimate  = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(rear);
 
+        hasMeasurement = false;
+
+        var best = chooseBest(frontPoseEstimate, rearPoseEstimate);
+
+        if (best != null && best.tagCount > 0) {
+
+            boolean closeEnough = best.avgTagDist < 5.0;
+        
+            if (closeEnough) {
+                bestPose = best.pose;
+                bestTimestamp = best.timestampSeconds;
+                tagCount = best.tagCount;
+                hasMeasurement = true;
+            }
+        }
+        }
+    
+    private LimelightHelpers.PoseEstimate chooseBest(
+            LimelightHelpers.PoseEstimate a,
+            LimelightHelpers.PoseEstimate b) {
+
+        if (a == null && b == null) return null;
+        if (a == null) return b;
+        if (b == null) return a;
+
+        // Prefer more tags
+        if (a.tagCount != b.tagCount)
+            return a.tagCount > b.tagCount ? a : b;
+
+        // If equal, prefer lower latency
+        return a.latency < b.latency ? a : b;
+    }
+
+    public Optional<Pose2d> getEstimatedGlobalPose() {
+        return hasMeasurement ? Optional.of(bestPose) : Optional.empty();
+    }
+
+    public double getTimestamp() {
+        return bestTimestamp;
+    }
+
+    public int getTagCount() {
+        return tagCount;
     }
 }
+
