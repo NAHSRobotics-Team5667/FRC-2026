@@ -77,10 +77,11 @@ public final class Constants {
 
     public static final double CLIMB_KS = 1;
     public static final double CLIMB_KV = 1;
+    public static final double CLIMB_KA = 1;
     public static final double CLIMB_KP = 1;
     public static final double CLIMB_KI = 1;
     public static final double CLIMB_KD = 1;
-
+    
     public enum ClimbDirection {
       UP,
       DOWN

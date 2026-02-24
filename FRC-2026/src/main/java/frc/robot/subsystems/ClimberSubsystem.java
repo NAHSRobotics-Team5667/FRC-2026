@@ -4,6 +4,8 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimberConstants;
 
@@ -51,10 +53,15 @@ public class ClimberSubsystem extends SubsystemBase {
     m_climber.setControl(m_request.withVelocity(velocity).withFeedForward(feedforward));
   }
   
-  
+  public double getVelocity() {
+    return m_climber.getVelocity().getValueAsDouble();
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    SmartDashboard.putNumber("CLIMBER RPM", getVelocity());
+
   }
 
   @Override

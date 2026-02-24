@@ -4,6 +4,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -156,6 +157,9 @@ public class ShooterSubsystem extends SubsystemBase {
     public void periodic() {
         // This method will be called once per scheduler run
         shooter.updateTelemetry();
+
+        SmartDashboard.putNumber("FEEDER RPM", getFeederRPM());
+        
     }
 
     @Override
