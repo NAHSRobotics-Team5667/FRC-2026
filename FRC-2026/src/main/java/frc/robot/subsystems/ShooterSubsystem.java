@@ -157,9 +157,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void periodic() {
         // This method will be called once per scheduler run
         shooter.updateTelemetry();
-
-        SmartDashboard.putNumber("FEEDER RPM", getFeederRPM());
-        
+        SmartDashboard.putNumber("[SHOOTER] Feeder RPM", getFeederRPM());
     }
 
     @Override

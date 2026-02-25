@@ -21,6 +21,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
@@ -110,10 +111,22 @@ public class IntakeSubsystem extends SubsystemBase {
     indexerMotor.set(output);    
   }
 
+  public double getRollerVelocity() {
+    return rollerMotor.getVelocity().getValueAsDouble();
+  }
+
+  public double getIndexerSpeed() {
+    return indexerMotor.getVelocity().getValueAsDouble();
+  }
+
+  
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     arm.updateTelemetry();
+    SmartDashboard.putNumber("[INTAKE] Roller RPM", getRollerVelocity());
+    SmartDashboard.putNumber("[INTAKE] Indexer Speed", getIndexerSpeed());
   }
 
   @Override
