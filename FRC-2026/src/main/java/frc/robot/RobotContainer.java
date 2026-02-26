@@ -21,9 +21,9 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.ClimberConstants.ClimbDirection;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.commands.shooter.ShooterCommand;
 import frc.robot.commands.shooter.FeederCommand;
-import frc.robot.commands.intake.IntakeRollCommand;
 import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -31,6 +31,7 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
+import frc.robot.commands.intake.IntakeCommand;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -130,9 +131,10 @@ public class RobotContainer {
            Left - ?
 
         */
-        joystick.a().whileTrue(intake.setIntakeAngle(Degrees.of(0)));
-        joystick.b().whileTrue(intake.setIntakeAngle(Degrees.of(40)));
+        joystick.a().onTrue(new IntakeCommand());
+        joystick.b().whileTrue(intake.setIntakeAngle(Degrees.of(40))); 
         joystick.x().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+        joystick.y().whileTrue(shooter.setDutyCycle(ShooterConstants.SHOOTER_DUTY_CYCLE));
         joystick.leftTrigger().whileTrue(new ShooterCommand(shooter, drivetrain));
         joystick.rightTrigger().whileTrue(new FeederCommand(100));
         joystick.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP));

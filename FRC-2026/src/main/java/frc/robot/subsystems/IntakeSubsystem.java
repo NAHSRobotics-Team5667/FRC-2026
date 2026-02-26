@@ -41,6 +41,7 @@ public class IntakeSubsystem extends SubsystemBase {
   private TalonFX deployMotor = new TalonFX(IntakeConstants.INTAKE_DEPLOY);
   private TalonFX rollerMotor = new TalonFX(IntakeConstants.INTAKE_ROLLERS);
   private TalonFX indexerMotor = new TalonFX(IntakeConstants.INDEXER);
+  private IntakeConstants.IntakeArmState armState;
   
   private static IntakeSubsystem instance = null;
 
@@ -87,6 +88,8 @@ public class IntakeSubsystem extends SubsystemBase {
     slot0Configs.kI = IntakeConstants.ROLLERKI;
     slot0Configs.kD = IntakeConstants.ROLLERKD;
     rollerMotor.getConfigurator().apply(slot0Configs);
+
+    armState = IntakeConstants.IntakeArmState.RETRACTED;
   }
 
   public static IntakeSubsystem getInstance() {
@@ -111,6 +114,10 @@ public class IntakeSubsystem extends SubsystemBase {
     indexerMotor.set(output);    
   }
 
+  public void setArmAngle(Angle angle) {
+    arm.setAngle(angle);
+  }
+
   public double getRollerVelocity() {
     return rollerMotor.getVelocity().getValueAsDouble();
   }
@@ -119,7 +126,21 @@ public class IntakeSubsystem extends SubsystemBase {
     return indexerMotor.getVelocity().getValueAsDouble();
   }
 
-  
+
+  // ========================================================
+  // ================= STATE MANAGEMENT ======================
+
+  public IntakeConstants.IntakeArmState getState() {
+    return armState;
+  }
+
+  public void changeArmState(boolean isDeployed) {
+    if (isDeployed) {
+      armState = IntakeConstants.IntakeArmState.DEPLOYED;
+    } else {
+      armState = IntakeConstants.IntakeArmState.RETRACTED;
+    }
+  }
 
   @Override
   public void periodic() {

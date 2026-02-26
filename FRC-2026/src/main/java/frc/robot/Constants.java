@@ -36,6 +36,11 @@ public final class Constants {
 
     public static final double ROLLER_VELOCITY = 0;
     public static final double ROLLER_FEEDFORWARD = 0;
+
+    public enum IntakeArmState {
+      DEPLOYED,
+      RETRACTED;
+    }
   }
 
   public static class ShooterConstants {
@@ -67,7 +72,8 @@ public final class Constants {
         return shooterRPMMap.get(distance);
     }
 
-    public static double RPM_TOLERANCE = 50;
+    public static final double RPM_TOLERANCE = 50;
+    public static final double SHOOTER_DUTY_CYCLE = 0.1;
   }
 
   public static class ClimberConstants {
