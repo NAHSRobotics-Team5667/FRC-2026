@@ -58,18 +58,19 @@ public final class Constants {
     public static final double SHOOTER_KV = 1;
     public static final double SHOOTER_KA = 1;
 
-    private static final InterpolatingDoubleTreeMap shooterRPMMap = new InterpolatingDoubleTreeMap();
+    private static final InterpolatingDoubleTreeMap shooterRPMMap =
+        new InterpolatingDoubleTreeMap();
 
     static {
-        // Placeholder values — replace during testing
-        // key(meters) + value(RPM)
-        shooterRPMMap.put(2.0, 3000.0);
-        shooterRPMMap.put(3.0, 3400.0);
-        shooterRPMMap.put(4.0, 3800.0);
+      // Placeholder values — replace during testing
+      // key(meters) + value(RPM)
+      shooterRPMMap.put(2.0, 3000.0);
+      shooterRPMMap.put(3.0, 3400.0);
+      shooterRPMMap.put(4.0, 3800.0);
     }
 
     public static double getShooterRPM(double distance) {
-        return shooterRPMMap.get(distance);
+      return shooterRPMMap.get(distance);
     }
 
     public static final double RPM_TOLERANCE = 50;
@@ -87,7 +88,7 @@ public final class Constants {
     public static final double CLIMB_KP = 1;
     public static final double CLIMB_KI = 1;
     public static final double CLIMB_KD = 1;
-    
+
     public enum ClimbDirection {
       UP,
       DOWN
@@ -105,20 +106,18 @@ public final class Constants {
     public static final String LIMELIGHT_REAR_NAME = "limelight-rear";
 
     public static final Pose2d BLUE_HUB_POSE =
-      new Pose2d(4.6192143328, 4.0378468646, Rotation2d.fromDegrees(0));
+        new Pose2d(4.6192143328, 4.0378468646, Rotation2d.fromDegrees(0));
 
     public static final Pose2d RED_HUB_POSE =
-      new Pose2d(11.9080899252, 4.0394513572, Rotation2d.fromDegrees(180));
+        new Pose2d(11.9080899252, 4.0394513572, Rotation2d.fromDegrees(180));
 
     public static final double AutoAlignTranslationTolerance = 0.1; // meters
     public static final double AutoAlignAngleTolerance = 5; // degrees
 
     public static Pose2d getAllianceHubPose() {
-      return DriverStation.getAlliance()
-        .orElse(Alliance.Blue) == Alliance.Blue
+      return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
           ? VisionConstants.BLUE_HUB_POSE
           : VisionConstants.RED_HUB_POSE;
     }
   }
-  
 }
