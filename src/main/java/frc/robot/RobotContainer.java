@@ -23,6 +23,7 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.commands.shooter.FeederCommand;
 import frc.robot.commands.shooter.ShooterCommand;
+import frc.robot.commands.intake.IntakeCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -53,7 +54,7 @@ public class RobotContainer {
 
   public final IntakeSubsystem intake = new IntakeSubsystem();
   public final ShooterSubsystem shooter = new ShooterSubsystem();
-  public final ClimberSubsystem climber = ClimberSubsystem.getInstance();
+  public final ClimberSubsystem climber = new ClimberSubsystem();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -174,7 +175,7 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    controller.a().whileTrue(intake.setIntakeAngle(Degrees.of(0)));
+    controller.a().whileTrue(new IntakeCommand());
     controller.leftTrigger().whileTrue(new ShooterCommand(shooter));
     controller.rightTrigger().whileTrue(new FeederCommand(100));
     controller.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP));

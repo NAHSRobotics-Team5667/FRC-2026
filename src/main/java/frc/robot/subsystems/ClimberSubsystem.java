@@ -16,11 +16,7 @@ public class ClimberSubsystem extends SubsystemBase {
   // ========================================================
   // ============= CLASS & SINGLETON SETUP ==================
 
-  // SINGLETON ----------------------------------------------
-
-  private static ClimberSubsystem instance = null;
-
-  private ClimberSubsystem() {
+  public ClimberSubsystem() {
     // Climber Configuration for Velocity Control
     var slot0Configs = new Slot0Configs();
     slot0Configs.kS = ClimberConstants.CLIMB_KS;
@@ -33,14 +29,6 @@ public class ClimberSubsystem extends SubsystemBase {
     // Initialize Climber Motors
     m_climber = new TalonFX(ClimberConstants.CLIMB);
     m_climber.setNeutralMode(NeutralModeValue.Brake);
-  }
-
-  public static ClimberSubsystem getInstance() {
-    if (instance == null) {
-      instance = new ClimberSubsystem();
-    }
-
-    return instance;
   }
 
   // ========================================================

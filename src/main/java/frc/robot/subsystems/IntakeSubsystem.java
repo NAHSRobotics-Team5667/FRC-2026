@@ -20,6 +20,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
@@ -39,7 +40,6 @@ public class IntakeSubsystem extends SubsystemBase {
   private TalonFX deployMotor = new TalonFX(IntakeConstants.INTAKE_DEPLOY);
   private TalonFX rollerMotor = new TalonFX(IntakeConstants.INTAKE_ROLLERS);
   private TalonFX indexerMotor = new TalonFX(IntakeConstants.INDEXER);
-  private IntakeConstants.IntakeArmState armState;
 
   private static IntakeSubsystem instance = null;
 
@@ -136,15 +136,11 @@ public class IntakeSubsystem extends SubsystemBase {
   // ========================================================
   // ================= STATE MANAGEMENT ======================
 
-  public IntakeConstants.IntakeArmState getState() {
-    return armState;
-  }
-
-  public void changeArmState(boolean isDeployed) {
-    if (isDeployed) {
-      armState = IntakeConstants.IntakeArmState.DEPLOYED;
+  public String getState() {
+    if (getRollerVelocity() > 0) {
+      return "DEPLOYED";
     } else {
-      armState = IntakeConstants.IntakeArmState.RETRACTED;
+      return "RETRACTED";
     }
   }
 
@@ -158,5 +154,6 @@ public class IntakeSubsystem extends SubsystemBase {
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
     arm.simIterate();
+    SmartDashboard.putString("[INTAKE] Status", getState());
   }
 }

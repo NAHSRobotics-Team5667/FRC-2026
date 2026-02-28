@@ -13,7 +13,7 @@ public class ClimberCommand extends Command {
   public ClimberCommand(ClimberConstants.ClimbDirection direction) {
     // addRequirement() - prevent two commands from being run at the same time
     this.direction = direction;
-    climber = ClimberSubsystem.getInstance();
+    climber =  new ClimberSubsystem();
     addRequirements(climber);
   }
 
