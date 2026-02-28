@@ -39,6 +39,7 @@ public class IntakeSubsystem extends SubsystemBase {
   private TalonFX deployMotor = new TalonFX(IntakeConstants.INTAKE_DEPLOY);
   private TalonFX rollerMotor = new TalonFX(IntakeConstants.INTAKE_ROLLERS);
   private TalonFX indexerMotor = new TalonFX(IntakeConstants.INDEXER);
+  private IntakeConstants.IntakeArmState armState;
 
   private static IntakeSubsystem instance = null;
 
@@ -118,6 +119,33 @@ public class IntakeSubsystem extends SubsystemBase {
   public void setIndexer(double percentOutput) {
     double output = percentOutput / 100;
     indexerMotor.set(output);
+  }
+
+  public void setArmAngle(Angle angle) {
+    arm.setAngle(angle);
+  }
+
+  public double getRollerVelocity() {
+    return rollerMotor.getVelocity().getValueAsDouble();
+  }
+
+  public double getIndexerSpeed() {
+    return indexerMotor.getVelocity().getValueAsDouble();
+  }
+
+  // ========================================================
+  // ================= STATE MANAGEMENT ======================
+
+  public IntakeConstants.IntakeArmState getState() {
+    return armState;
+  }
+
+  public void changeArmState(boolean isDeployed) {
+    if (isDeployed) {
+      armState = IntakeConstants.IntakeArmState.DEPLOYED;
+    } else {
+      armState = IntakeConstants.IntakeArmState.RETRACTED;
+    }
   }
 
   @Override

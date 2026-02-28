@@ -27,7 +27,6 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -53,7 +52,6 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser;
 
   public final IntakeSubsystem intake = new IntakeSubsystem();
-  public static final VisionSubsystem vision = new VisionSubsystem();
   public final ShooterSubsystem shooter = new ShooterSubsystem();
   public final ClimberSubsystem climber = ClimberSubsystem.getInstance();
 

@@ -37,6 +37,11 @@ public final class Constants {
 
     public static final double ROLLER_VELOCITY = 0;
     public static final double ROLLER_FEEDFORWARD = 0;
+
+    public enum IntakeArmState {
+      DEPLOYED,
+      RETRACTED;
+    }
   }
 
   public static class ShooterConstants {
