@@ -10,15 +10,15 @@ import frc.robot.subsystems.ShooterSubsystem;
 public class FeederCommand extends Command {
 
   private ShooterSubsystem shooter;
-  private double speed = 100;
+  private double speed = 0;
 
   /**
    * Creates a new ShootCommand.
    *
    * @param percentSpeed Speed the feeder runs at
    */
-  public FeederCommand(double speed) {
-    shooter = ShooterSubsystem.getInstance();
+  public FeederCommand(double speed, ShooterSubsystem shooter) {
+    this.shooter = shooter;
     this.speed = speed;
 
     // Use addRequirements() here to declare subsystem dependencies.

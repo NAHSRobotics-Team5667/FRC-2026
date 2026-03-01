@@ -8,8 +8,12 @@ import static edu.wpi.first.units.Units.RPM;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
@@ -28,16 +32,16 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class ShooterSubsystem extends SubsystemBase {
+
   private TalonFX m_shooter1 = new TalonFX(ShooterConstants.SHOOTER_1);
   private TalonFX m_shooter2 = new TalonFX(ShooterConstants.SHOOTER_2);
   private TalonFX m_feeder = new TalonFX(ShooterConstants.FEEDER);
   private AngularVelocity targetSpeed = RPM.of(0);
   private double targetFeederRPM = 0;
-  // ========================================================
-  // ============= CLASS & SINGLETON SETUP ==================
+  private final InterpolatingDoubleTreeMap distanceToRPM = new InterpolatingDoubleTreeMap();
 
-  // SINGLETON ----------------------------------------------
-  private static ShooterSubsystem instance = null;
+  // ========================================================
+  // ============= CLASS SETUP ==================
 
   SmartMotorControllerConfig smcConfig =
       new SmartMotorControllerConfig(this)
@@ -90,19 +94,15 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public ShooterSubsystem() {
     m_feeder.setNeutralMode(NeutralModeValue.Coast);
-    m_shooter2.setControl(new Follower(m_shooter1.getDeviceID(), null));
-  }
+    m_shooter2.setControl(new Follower(m_shooter1.getDeviceID(), MotorAlignmentValue.Opposed));
 
-  public static ShooterSubsystem getInstance() {
-    if (instance == null) {
-      instance = new ShooterSubsystem();
-    }
-
-    return instance;
+    for (double[] entry : ShooterConstants.DISTANCE_RPM_MAP) {
+      distanceToRPM.put(entry[0], entry[1]);
+    };
   }
 
   private final Trigger atSpeed =
-      new Trigger(() -> shooter.isNear(targetSpeed, RPM.of(100)).getAsBoolean());
+      new Trigger(() -> shooter.isNear(targetSpeed, RPM.of(75)).getAsBoolean());
 
   // ========================================================
   // ================== MOTOR ACTIONS =======================
@@ -119,21 +119,26 @@ public class ShooterSubsystem extends SubsystemBase {
     targetSpeed = speed;
   }
 
+  public void setDistanceBasedSpeed(double distanceMeters) {
+    double minDistance = 1.5;
+    double maxDistance = 3.5;
+
+    double clampedDistance =
+        MathUtil.clamp(distanceMeters, minDistance, maxDistance);
+    
+    double rpm = distanceToRPM.get(clampedDistance);
+    setShooterSpeed(RPM.of(rpm));
+  }
+
+  public Command setVelocity(AngularVelocity speed) {
+    return shooter.setSpeed(speed);
+  }
+
   public void setFeeder(double percentOutput) {
     double output = percentOutput / 100;
     targetFeederRPM = output * ShooterConstants.SHOOTER_MAX_RPM;
 
     m_feeder.set(output);
-  }
-
-  /**
-   * Sets the dutycycle of the shooter
-   *
-   * @param dutyCycle DutyCycle to set
-   * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
-   */
-  public Command setDutyCycle(double DutyCycle) {
-    return shooter.set(DutyCycle);
   }
 
   /**

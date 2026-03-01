@@ -46,18 +46,16 @@ public class IntakeSubsystem extends SubsystemBase {
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(
-              150, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+              20, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
           .withSimClosedLoopController(
-              150, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-          .withFeedforward(new ArmFeedforward(0, 0, 0))
+              20, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+          .withFeedforward(new ArmFeedforward(0.2, 0.8, 0))
           .withSimFeedforward(new ArmFeedforward(0, 0, 0))
           .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(38 / 14, 16)))
-          .withMotorInverted(false)
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(38.00 / 14.00, 16)))
+          .withMotorInverted(true)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(Amps.of(40))
-          .withClosedLoopRampRate(Seconds.of(0.25))
-          .withOpenLoopRampRate(Seconds.of(0.25));
+          .withStatorCurrentLimit(Amps.of(40));
 
   private VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
@@ -66,11 +64,10 @@ public class IntakeSubsystem extends SubsystemBase {
 
   private ArmConfig armCfg =
       new ArmConfig(talonMotorController)
-          .withSoftLimits(Degrees.of(0), Degrees.of(40))
-          .withHardLimit(Degrees.of(0), Degrees.of(80))
-          .withStartingPosition(Degrees.of(0))
+          .withHardLimit(Degrees.of(-4.647), Degrees.of(143.170126))
+          .withStartingPosition(Degrees.of(143.170126))
           .withLength(Inches.of(8))
-          .withMass(Pounds.of(8))
+          .withMass(Pounds.of(4))
           .withTelemetry("Arm", TelemetryVerbosity.HIGH);
 
   private Arm arm = new Arm(armCfg);

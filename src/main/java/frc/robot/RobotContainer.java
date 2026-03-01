@@ -8,6 +8,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RPM;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,18 +17,22 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ClimberConstants.ClimbDirection;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.climber.ClimberCommand;
+import frc.robot.commands.intake.IndexCommand;
+import frc.robot.commands.intake.IntakeDeployCommand;
+import frc.robot.commands.intake.IntakeRollCommand;
 import frc.robot.commands.shooter.FeederCommand;
-import frc.robot.commands.shooter.ShooterCommand;
+import frc.robot.commands.shooter.ShooterCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -45,17 +50,16 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  public final IntakeSubsystem intake = new IntakeSubsystem();
+  public final ShooterSubsystem shooter = new ShooterSubsystem();
+  public final ClimberSubsystem climber = new ClimberSubsystem();
+  // private final Vision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-
-  public final IntakeSubsystem intake = new IntakeSubsystem();
-  public static final VisionSubsystem vision = new VisionSubsystem();
-  public final ShooterSubsystem shooter = new ShooterSubsystem();
-  public final ClimberSubsystem climber = ClimberSubsystem.getInstance();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -71,6 +75,12 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
+
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement,
+        //         new VisionIOLimelight(camera0Name, drive::getRotation),
+        //         new VisionIOLimelight(camera1Name, drive::getRotation));
 
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
@@ -100,6 +110,12 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
+
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement,
+        //         new VisionIOLimelight(camera0Name, drive::getRotation),
+        //         new VisionIOLimelight(camera1Name, drive::getRotation));
         break;
 
       default:
@@ -111,7 +127,9 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        break;
+
+        // vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        // break;
     }
 
     // Set up auto routines
@@ -152,20 +170,20 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.kZero));
+    // Lock to 0° when LT button is held
+    // controller
+    //     .leftTrigger()
+    //     .whileTrue(
+    //         DriveCommands.joystickDriveAtAngle(
+    //             drive,
+    //             () -> -controller.getLeftY(),
+    //             () -> -controller.getLeftX(),
+    //             () -> Rotation2d.kZero));
 
-    // Switch to X pattern when X button is pressed
+    // Switch to X pattern(brake) when B button is pressed
     controller.b().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro to 0° when B button is pressed
+    // Reset gyro to 0° when X button is pressed
     controller
         .x()
         .onTrue(
@@ -176,11 +194,56 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    controller.a().whileTrue(intake.setIntakeAngle(Degrees.of(0)));
-    controller.leftTrigger().whileTrue(new ShooterCommand(shooter));
-    controller.rightTrigger().whileTrue(new FeederCommand(100));
-    controller.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP));
-    controller.povDown().whileTrue(new ClimberCommand(ClimbDirection.DOWN));
+    controller
+        .leftTrigger()
+        .whileTrue(new IntakeDeployCommand(intake))
+        .onFalse(intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_UP_POSITION)));
+
+    controller.rightTrigger()
+    .whileTrue(ShooterCommands.autoAimShoot(drive, shooter));
+
+    controller.a().toggleOnTrue(
+        Commands.runEnd(
+            () -> {
+                if (shooter.atSpeedTrigger().getAsBoolean()) {
+                    shooter.setFeeder(-75);
+                    intake.setIndexer(40);
+                } else {
+                    shooter.setFeeder(0);
+                    intake.setIndexer(0);
+                }
+            },
+            () -> {
+                shooter.setFeeder(0);
+                intake.setIndexer(0);
+            },
+            shooter, intake
+        )
+    );
+
+    controller.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP, climber));
+    controller.povDown().whileTrue(new ClimberCommand(ClimbDirection.DOWN, climber));
+
+    controller
+        .rightTrigger()
+        .and(shooter.atSpeedTrigger())
+        .whileTrue(
+            Commands.run(
+                () -> controller.getHID().setRumble(
+                    GenericHID.RumbleType.kBothRumble, 0.5
+                )
+            )
+        );
+
+    controller
+        .rightTrigger()
+        .onFalse(
+            Commands.runOnce(
+                () -> controller.getHID().setRumble(
+                    GenericHID.RumbleType.kBothRumble, 0.0
+                )
+            )
+        );
   }
 
   /**

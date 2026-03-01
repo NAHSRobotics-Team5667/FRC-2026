@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -30,13 +31,16 @@ public final class Constants {
     public static final int INDEXER = 43;
 
     public static final double ROLLERKV = 1;
-    public static final double ROLLERKS = 1;
-    public static final double ROLLERKP = 1;
-    public static final double ROLLERKI = 1;
-    public static final double ROLLERKD = 1;
+    public static final double ROLLERKS = 0;
+    public static final double ROLLERKP = 0;
+    public static final double ROLLERKI = 0;
+    public static final double ROLLERKD = 0;
 
-    public static final double ROLLER_VELOCITY = 0;
+    public static final double ROLLER_VELOCITY = 1500;
     public static final double ROLLER_FEEDFORWARD = 0;
+
+    public static final double INTAKE_DOWN_POSITION = -4.647;
+    public static final double INTAKE_UP_POSITION = 143.170126;
   }
 
   public static class ShooterConstants {
@@ -47,29 +51,23 @@ public final class Constants {
     public static final double SHOOTER_MAX_RPM = 1;
     public static final double FEEDER_MAX_RPM = 1;
 
-    public static final double SHOOTER_KP = 1;
-    public static final double SHOOTER_KI = 1;
-    public static final double SHOOTER_KD = 1;
-    public static final double SHOOTER_KS = 1;
-    public static final double SHOOTER_KV = 1;
-    public static final double SHOOTER_KA = 1;
+    public static final double SHOOTER_KP = 50;
+    public static final double SHOOTER_KI = 0;
+    public static final double SHOOTER_KD = 0;
+    public static final double SHOOTER_KS = 0;
+    public static final double SHOOTER_KV = 0;
+    public static final double SHOOTER_KA = 0;
 
-    private static final InterpolatingDoubleTreeMap shooterRPMMap =
-        new InterpolatingDoubleTreeMap();
+    // placeholders
+    public static final double[][] DISTANCE_RPM_MAP = {
+      {1.5, 2400},
+      {2.0, 2600},
+      {2.5, 2800},
+      {3.0, 3000}
+    };
 
-    static {
-      // Placeholder values — replace during testing
-      // key(meters) + value(RPM)
-      shooterRPMMap.put(2.0, 3000.0);
-      shooterRPMMap.put(3.0, 3400.0);
-      shooterRPMMap.put(4.0, 3800.0);
-    }
-
-    public static double getShooterRPM(double distance) {
-      return shooterRPMMap.get(distance);
-    }
-
-    public static double RPM_TOLERANCE = 50;
+    public static final double DEFAULT_RPM = 1500;
+    public static final double RPM_TOLERANCE = 50;
   }
 
   public static class ClimberConstants {
@@ -94,16 +92,16 @@ public final class Constants {
     public static final String LIMELIGHT_FRONT_NAME = "limelight-front";
     public static final String LIMELIGHT_REAR_NAME = "limelight-rear";
 
-    public static final Pose2d BLUE_HUB_POSE =
-        new Pose2d(4.6192143328, 4.0378468646, Rotation2d.fromDegrees(0));
+    public static final Translation2d BLUE_HUB_POSE =
+        new Translation2d(4.6192143328, 4.0378468646);
 
-    public static final Pose2d RED_HUB_POSE =
-        new Pose2d(11.9080899252, 4.0394513572, Rotation2d.fromDegrees(180));
+    public static final Translation2d RED_HUB_POSE =
+        new Translation2d(11.9080899252, 4.0394513572);
 
     public static final double AutoAlignTranslationTolerance = 0.1; // meters
     public static final double AutoAlignAngleTolerance = 5; // degrees
 
-    public static Pose2d getAllianceHubPose() {
+    public static Translation2d getAllianceHubTranslation() {
       return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
           ? VisionConstants.BLUE_HUB_POSE
           : VisionConstants.RED_HUB_POSE;

@@ -7,13 +7,13 @@ import frc.robot.subsystems.ClimberSubsystem;
 public class ClimberCommand extends Command {
 
   private ClimberConstants.ClimbDirection direction;
-  private ClimberSubsystem climber;
+  private final ClimberSubsystem climber;
   private double velocity;
 
-  public ClimberCommand(ClimberConstants.ClimbDirection direction) {
+  public ClimberCommand(ClimberConstants.ClimbDirection direction, ClimberSubsystem climber) {
     // addRequirement() - prevent two commands from being run at the same time
     this.direction = direction;
-    climber = ClimberSubsystem.getInstance();
+    this.climber = climber;
     addRequirements(climber);
   }
 

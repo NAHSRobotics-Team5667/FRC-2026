@@ -5,6 +5,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimberConstants;
 
@@ -14,13 +15,9 @@ public class ClimberSubsystem extends SubsystemBase {
   VelocityVoltage m_request;
 
   // ========================================================
-  // ============= CLASS & SINGLETON SETUP ==================
+  // ============= CLASS SETUP ==================
 
-  // SINGLETON ----------------------------------------------
-
-  private static ClimberSubsystem instance = null;
-
-  private ClimberSubsystem() {
+  public ClimberSubsystem() {
     // Climber Configuration for Velocity Control
     var slot0Configs = new Slot0Configs();
     slot0Configs.kS = ClimberConstants.CLIMB_KS;
@@ -33,14 +30,6 @@ public class ClimberSubsystem extends SubsystemBase {
     // Initialize Climber Motors
     m_climber = new TalonFX(ClimberConstants.CLIMB);
     m_climber.setNeutralMode(NeutralModeValue.Brake);
-  }
-
-  public static ClimberSubsystem getInstance() {
-    if (instance == null) {
-      instance = new ClimberSubsystem();
-    }
-
-    return instance;
   }
 
   // ========================================================
