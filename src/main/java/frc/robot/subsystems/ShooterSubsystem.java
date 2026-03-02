@@ -10,7 +10,6 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
@@ -94,11 +93,13 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public ShooterSubsystem() {
     m_feeder.setNeutralMode(NeutralModeValue.Coast);
+    m_shooter2.setNeutralMode(NeutralModeValue.Coast);
     m_shooter2.setControl(new Follower(m_shooter1.getDeviceID(), MotorAlignmentValue.Opposed));
 
     for (double[] entry : ShooterConstants.DISTANCE_RPM_MAP) {
       distanceToRPM.put(entry[0], entry[1]);
-    };
+    }
+    ;
   }
 
   private final Trigger atSpeed =
@@ -123,9 +124,8 @@ public class ShooterSubsystem extends SubsystemBase {
     double minDistance = 1.5;
     double maxDistance = 3.5;
 
-    double clampedDistance =
-        MathUtil.clamp(distanceMeters, minDistance, maxDistance);
-    
+    double clampedDistance = MathUtil.clamp(distanceMeters, minDistance, maxDistance);
+
     double rpm = distanceToRPM.get(clampedDistance);
     setShooterSpeed(RPM.of(rpm));
   }

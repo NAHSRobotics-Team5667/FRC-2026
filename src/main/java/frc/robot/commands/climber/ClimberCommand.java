@@ -8,7 +8,7 @@ public class ClimberCommand extends Command {
 
   private ClimberConstants.ClimbDirection direction;
   private final ClimberSubsystem climber;
-  private double velocity;
+  private double percentOutput;
 
   public ClimberCommand(ClimberConstants.ClimbDirection direction, ClimberSubsystem climber) {
     // addRequirement() - prevent two commands from being run at the same time
@@ -21,22 +21,22 @@ public class ClimberCommand extends Command {
   @Override
   public void initialize() {
     if (direction.equals(ClimberConstants.ClimbDirection.DOWN)) {
-      velocity = -ClimberConstants.CLIMB_SPEED;
+      percentOutput = -ClimberConstants.CLIMB_PERCENT_OUTPUT;
     } else {
-      velocity = ClimberConstants.CLIMB_SPEED;
+      percentOutput = ClimberConstants.CLIMB_PERCENT_OUTPUT;
     }
   }
 
   // Called when scheduler runs while the command is scheduled
   @Override
   public void execute() {
-    climber.setVelocity(velocity, ClimberConstants.CLIMB_FEEDFORWARD);
+    climber.setPercentOutput(percentOutput);
   }
 
   // Called when the command is interruped or ended
   @Override
   public void end(boolean interrupted) {
-    climber.setVelocity(0, 0);
+    climber.setPercentOutput(0);
   }
 
   // Called so it should return true when the command will end

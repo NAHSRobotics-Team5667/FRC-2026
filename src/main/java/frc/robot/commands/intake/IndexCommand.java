@@ -6,21 +6,22 @@ import frc.robot.subsystems.IntakeSubsystem;
 public class IndexCommand extends Command {
 
   private IntakeSubsystem intake;
+  private double percentOutput;
 
-  public IndexCommand() {
+  public IndexCommand(double percentOutput) {
     intake = IntakeSubsystem.getInstance();
+    this.percentOutput = percentOutput;
   }
 
   // Called when command is initiated/first scheduled
   @Override
   public void initialize() {
-    intake.setIndexer(40);
+    intake.setIndexer(percentOutput);
   }
 
   // Called when scheduler runs while the command is scheduled
   @Override
-  public void execute() {
-  }
+  public void execute() {}
 
   // Called when the command is interruped or ended
   @Override

@@ -4,10 +4,7 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -39,7 +36,7 @@ public final class Constants {
     public static final double ROLLER_VELOCITY = 1500;
     public static final double ROLLER_FEEDFORWARD = 0;
 
-    public static final double INTAKE_DOWN_POSITION = -4.647;
+    public static final double INTAKE_DOWN_POSITION = 65;
     public static final double INTAKE_UP_POSITION = 143.170126;
   }
 
@@ -73,14 +70,7 @@ public final class Constants {
   public static class ClimberConstants {
     public static final int CLIMB = 61;
     public static final double CLIMB_FEEDFORWARD = 1;
-    public static final double CLIMB_SPEED = 1;
-
-    public static final double CLIMB_KS = 1;
-    public static final double CLIMB_KV = 1;
-    public static final double CLIMB_KA = 1;
-    public static final double CLIMB_KP = 1;
-    public static final double CLIMB_KI = 1;
-    public static final double CLIMB_KD = 1;
+    public static final double CLIMB_PERCENT_OUTPUT = 0.75;
 
     public enum ClimbDirection {
       UP,
@@ -92,11 +82,9 @@ public final class Constants {
     public static final String LIMELIGHT_FRONT_NAME = "limelight-front";
     public static final String LIMELIGHT_REAR_NAME = "limelight-rear";
 
-    public static final Translation2d BLUE_HUB_POSE =
-        new Translation2d(4.6192143328, 4.0378468646);
+    public static final Translation2d BLUE_HUB_POSE = new Translation2d(4.6192143328, 4.0378468646);
 
-    public static final Translation2d RED_HUB_POSE =
-        new Translation2d(11.9080899252, 4.0394513572);
+    public static final Translation2d RED_HUB_POSE = new Translation2d(11.9080899252, 4.0394513572);
 
     public static final double AutoAlignTranslationTolerance = 0.1; // meters
     public static final double AutoAlignAngleTolerance = 5; // degrees
@@ -108,7 +96,7 @@ public final class Constants {
     }
   }
 
-  public final class SwerveConstants {
+  public static final class SwerveConstants {
     public static final Mode simMode = Mode.SIM;
     public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 

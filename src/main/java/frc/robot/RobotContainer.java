@@ -11,23 +11,22 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.ClimberConstants;
 import frc.robot.Constants.ClimberConstants.ClimbDirection;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.climber.ClimberCommand;
-import frc.robot.commands.intake.IndexCommand;
 import frc.robot.commands.intake.IntakeDeployCommand;
-import frc.robot.commands.intake.IntakeRollCommand;
-import frc.robot.commands.shooter.FeederCommand;
+import frc.robot.commands.intake.IntakeRetractCommand;
 import frc.robot.commands.shooter.ShooterCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -39,6 +38,10 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOLimelight;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -53,7 +56,7 @@ public class RobotContainer {
   public final IntakeSubsystem intake = new IntakeSubsystem();
   public final ShooterSubsystem shooter = new ShooterSubsystem();
   public final ClimberSubsystem climber = new ClimberSubsystem();
-  // private final Vision vision;
+  private final Vision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -63,6 +66,14 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+
+    NamedCommands.registerCommand("deployIntake", new IntakeDeployCommand(intake));
+    NamedCommands.registerCommand("retractIntake", new IntakeRetractCommand(intake));
+    NamedCommands.registerCommand(
+        "climbUp", new ClimberCommand(ClimberConstants.ClimbDirection.UP, climber));
+    NamedCommands.registerCommand(
+        "climbDown", new ClimberCommand(ClimberConstants.ClimbDirection.DOWN, climber));
+
     switch (Constants.SwerveConstants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -76,11 +87,11 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
 
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement,
-        //         new VisionIOLimelight(camera0Name, drive::getRotation),
-        //         new VisionIOLimelight(camera1Name, drive::getRotation));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation),
+                new VisionIOLimelight(VisionConstants.camera1Name, drive::getRotation));
 
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
@@ -111,11 +122,11 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
 
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement,
-        //         new VisionIOLimelight(camera0Name, drive::getRotation),
-        //         new VisionIOLimelight(camera1Name, drive::getRotation));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation),
+                new VisionIOLimelight(VisionConstants.camera1Name, drive::getRotation));
         break;
 
       default:
@@ -128,9 +139,12 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
 
-        // vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
-        // break;
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        break;
     }
+
+    NamedCommands.registerCommand(
+        "autoAimShoot", new ShooterCommands().autoAimShoot(drive, shooter));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -199,27 +213,29 @@ public class RobotContainer {
         .whileTrue(new IntakeDeployCommand(intake))
         .onFalse(intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_UP_POSITION)));
 
-    controller.rightTrigger()
-    .whileTrue(ShooterCommands.autoAimShoot(drive, shooter));
+    // controller.rightTrigger().whileTrue(ShooterCommands.autoAimShoot(drive, shooter));
 
-    controller.a().toggleOnTrue(
-        Commands.runEnd(
-            () -> {
-                if (shooter.atSpeedTrigger().getAsBoolean()) {
+    controller.rightTrigger().whileTrue(shooter.setVelocity(RPM.of(2000)));
+
+    controller
+        .a()
+        .toggleOnTrue(
+            Commands.runEnd(
+                () -> {
+                  if (shooter.atSpeedTrigger().getAsBoolean()) {
                     shooter.setFeeder(-75);
                     intake.setIndexer(40);
-                } else {
+                  } else {
                     shooter.setFeeder(0);
                     intake.setIndexer(0);
-                }
-            },
-            () -> {
-                shooter.setFeeder(0);
-                intake.setIndexer(0);
-            },
-            shooter, intake
-        )
-    );
+                  }
+                },
+                () -> {
+                  shooter.setFeeder(0);
+                  intake.setIndexer(0);
+                },
+                shooter,
+                intake));
 
     controller.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP, climber));
     controller.povDown().whileTrue(new ClimberCommand(ClimbDirection.DOWN, climber));
@@ -229,21 +245,13 @@ public class RobotContainer {
         .and(shooter.atSpeedTrigger())
         .whileTrue(
             Commands.run(
-                () -> controller.getHID().setRumble(
-                    GenericHID.RumbleType.kBothRumble, 0.5
-                )
-            )
-        );
+                () -> controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.5)));
 
     controller
         .rightTrigger()
         .onFalse(
             Commands.runOnce(
-                () -> controller.getHID().setRumble(
-                    GenericHID.RumbleType.kBothRumble, 0.0
-                )
-            )
-        );
+                () -> controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0)));
   }
 
   /**

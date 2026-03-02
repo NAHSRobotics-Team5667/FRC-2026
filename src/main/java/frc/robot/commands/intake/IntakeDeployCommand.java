@@ -8,11 +8,10 @@ import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeDeployCommand extends ParallelCommandGroup {
 
-    public IntakeDeployCommand(IntakeSubsystem intake){
-        addCommands(
-            intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION)),
-            new IntakeRollCommand(),
-            new IndexCommand()
-        );
-    }
+  public IntakeDeployCommand(IntakeSubsystem intake) {
+    addCommands(
+        intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION)),
+        new IntakeRollCommand(),
+        new IndexCommand(40));
+  }
 }
