@@ -12,24 +12,31 @@ import static edu.wpi.first.units.Units.RPM;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.ClimberConstants;
 import frc.robot.Constants.ClimberConstants.ClimbDirection;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.FeedCommand;
+import frc.robot.commands.PulseIntakeCommand;
 import frc.robot.commands.climber.ClimberCommand;
+import frc.robot.commands.intake.IndexCommand;
 import frc.robot.commands.intake.IntakeDeployCommand;
-import frc.robot.commands.intake.IntakeRetractCommand;
-import frc.robot.commands.shooter.ShooterCommands;
+import frc.robot.commands.intake.IntakeRollCommand;
+import frc.robot.commands.shooter.PrepareShotCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimberSubsystem;
+import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.drive.Drive;
@@ -56,6 +63,7 @@ public class RobotContainer {
   public final IntakeSubsystem intake = new IntakeSubsystem();
   public final ShooterSubsystem shooter = new ShooterSubsystem();
   public final ClimberSubsystem climber = new ClimberSubsystem();
+  public final FeederSubsystem feeder = new FeederSubsystem();
   private final Vision vision;
 
   // Controller
@@ -66,13 +74,6 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-
-    NamedCommands.registerCommand("deployIntake", new IntakeDeployCommand(intake));
-    NamedCommands.registerCommand("retractIntake", new IntakeRetractCommand(intake));
-    NamedCommands.registerCommand(
-        "climbUp", new ClimberCommand(ClimberConstants.ClimbDirection.UP, climber));
-    NamedCommands.registerCommand(
-        "climbDown", new ClimberCommand(ClimberConstants.ClimbDirection.DOWN, climber));
 
     switch (Constants.SwerveConstants.currentMode) {
       case REAL:
@@ -122,11 +123,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
 
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation),
-                new VisionIOLimelight(VisionConstants.camera1Name, drive::getRotation));
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
 
       default:
@@ -143,13 +140,34 @@ public class RobotContainer {
         break;
     }
 
-    NamedCommands.registerCommand(
-        "autoAimShoot", new ShooterCommands().autoAimShoot(drive, shooter));
-
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
+    NamedCommands.registerCommand("Auto Start", new IntakeDeployCommand(intake).withTimeout(6));
+    NamedCommands.registerCommand(
+        "Depot Scoring",
+        new ParallelCommandGroup(
+                new PrepareShotCommand(shooter, drive::getPose),
+                
+                Commands.sequence(
+                    new WaitCommand(0.25), // small spin-up buffer
+
+                    Commands.either(
+                        Commands.parallel(
+                            new FeedCommand(-60, feeder),
+                            new IndexCommand(50),
+                            new PulseIntakeCommand(intake)
+                        ),
+                        Commands.none(),
+                        () -> shooter.atSpeedTrigger().getAsBoolean()
+                    ).repeatedly()
+                )
+        ).withTimeout(8)
+    );
+    NamedCommands.registerCommand("Leave for Neutral", new IntakeDeployCommand(intake));
+
     // Set up SysId routines
+    autoChooser.addOption("Depot and Collect", new PathPlannerAuto("Depot and Collect"));
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
     autoChooser.addOption(
@@ -184,18 +202,24 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    // Lock to 0° when LT button is held
-    // controller
-    //     .leftTrigger()
-    //     .whileTrue(
-    //         DriveCommands.joystickDriveAtAngle(
-    //             drive,
-    //             () -> -controller.getLeftY(),
-    //             () -> -controller.getLeftX(),
-    //             () -> Rotation2d.kZero));
+    // intake.setDefaultCommand(
+    //    intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_CARRY_POSITION)));
+
+    shooter.setDefaultCommand(shooter.setVelocity(RPM.of(0)));
+    feeder.setDefaultCommand(new FeedCommand(20, feeder));
+
+    // Lock to hub when RT button is held
+    controller
+        .rightTrigger()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> drive.getDirectionToHub()));
 
     // Switch to X pattern(brake) when B button is pressed
-    controller.b().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    // controller.b().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when X button is pressed
     controller
@@ -208,50 +232,60 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
+    controller.b().toggleOnTrue(new IntakeDeployCommand(intake));
+
+    controller.rightTrigger().whileTrue(new PrepareShotCommand(shooter, drive::getPose));
+
     controller
-        .leftTrigger()
-        .whileTrue(new IntakeDeployCommand(intake))
+        .leftBumper()
+        .whileTrue(
+            new ParallelCommandGroup(
+                new IntakeRollCommand(-IntakeConstants.ROLLER_VELOCITY),
+                new IndexCommand(-40),
+                intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION))))
         .onFalse(intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_UP_POSITION)));
 
-    // controller.rightTrigger().whileTrue(ShooterCommands.autoAimShoot(drive, shooter));
-
-    controller.rightTrigger().whileTrue(shooter.setVelocity(RPM.of(2000)));
+    controller
+        .rightBumper()
+        .toggleOnTrue(intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_UP_POSITION)));
 
     controller
         .a()
-        .toggleOnTrue(
-            Commands.runEnd(
-                () -> {
-                  if (shooter.atSpeedTrigger().getAsBoolean()) {
-                    shooter.setFeeder(-75);
-                    intake.setIndexer(40);
-                  } else {
-                    shooter.setFeeder(0);
-                    intake.setIndexer(0);
-                  }
-                },
-                () -> {
-                  shooter.setFeeder(0);
-                  intake.setIndexer(0);
-                },
-                shooter,
-                intake));
+        .and(shooter.atSpeedTrigger())
+        .debounce(0.1)
+        .whileTrue(
+            new ParallelCommandGroup(
+                new FeedCommand(-60, feeder),
+                new IndexCommand(50),
+                new PulseIntakeCommand(intake)));
 
     controller.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP, climber));
     controller.povDown().whileTrue(new ClimberCommand(ClimbDirection.DOWN, climber));
+
+    controller.povLeft().whileTrue(
+        new ParallelCommandGroup(
+        new FeedCommand(-60, feeder),
+        new IndexCommand(50))
+    );
+
+    controller.leftStick().onTrue(intake.resetIntakeEncoder());
 
     controller
         .rightTrigger()
         .and(shooter.atSpeedTrigger())
         .whileTrue(
             Commands.run(
-                () -> controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.5)));
+                () -> controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.75)));
 
     controller
         .rightTrigger()
         .onFalse(
             Commands.runOnce(
                 () -> controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.0)));
+
+    controller
+        .rightBumper()
+        .onTrue(new InstantCommand(() -> drive.setPose(Constants.PoseConstants.blueHubBasePose)));
   }
 
   /**

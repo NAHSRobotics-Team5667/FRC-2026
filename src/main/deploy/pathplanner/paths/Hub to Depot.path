@@ -1,0 +1,122 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.3403708987161194,
+        "y": 4.054407988587732
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.7840085592011405,
+        "y": 5.930513552068473
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.6232524964336661,
+        "y": 7.211440798858773
+      },
+      "prevControl": {
+        "x": 0.8425455916316756,
+        "y": 7.368078724000209
+      },
+      "nextControl": {
+        "x": 0.4198191286319821,
+        "y": 7.066131250429
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.4938659058487873,
+        "y": 5.917574893009986
+      },
+      "prevControl": {
+        "x": 0.5326818830242506,
+        "y": 6.525691868758917
+      },
+      "nextControl": {
+        "x": 0.4679217026564767,
+        "y": 5.511115709663782
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.3403708987161194,
+        "y": 4.054407988587732
+      },
+      "prevControl": {
+        "x": 2.5969889154375743,
+        "y": 4.054407988587732
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Depot End"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.05,
+      "rotationDegrees": -90.0
+    },
+    {
+      "waypointRelativePos": 2.2643923240938157,
+      "rotationDegrees": -90.0
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 1.1019581363943307,
+      "maxWaypointRelativePos": 2.4794058068872147,
+      "constraints": {
+        "maxVelocity": 1.25,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Auto Start",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "Depot Scoring",
+      "waypointRelativePos": 3.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 173.8298249049704
+  },
+  "useDefaultConstraints": true
+}

@@ -7,9 +7,11 @@ import frc.robot.subsystems.IntakeSubsystem;
 public class IntakeRollCommand extends Command {
 
   private IntakeSubsystem intake;
+  private double velocity;
 
-  public IntakeRollCommand() {
+  public IntakeRollCommand(double velocity) {
     intake = IntakeSubsystem.getInstance();
+    this.velocity = velocity;
   }
 
   // Called when command is initiated/first scheduled
@@ -21,7 +23,7 @@ public class IntakeRollCommand extends Command {
   // Called when scheduler runs while the command is scheduled
   @Override
   public void execute() {
-    intake.setRollerVelocity(IntakeConstants.ROLLER_VELOCITY, IntakeConstants.ROLLER_FEEDFORWARD);
+    intake.setRollerVelocity(-velocity, IntakeConstants.ROLLER_FEEDFORWARD);
   }
 
   // Called when the command is interruped or ended

@@ -11,7 +11,7 @@ public class IntakeDeployCommand extends ParallelCommandGroup {
   public IntakeDeployCommand(IntakeSubsystem intake) {
     addCommands(
         intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION)),
-        new IntakeRollCommand(),
+        new IntakeRollCommand(IntakeConstants.ROLLER_VELOCITY),
         new IndexCommand(40));
   }
 }

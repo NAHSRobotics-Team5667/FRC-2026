@@ -5,22 +5,19 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Seconds;
 
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.ShooterConstants;
+import java.util.function.Supplier;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
@@ -34,10 +31,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private TalonFX m_shooter1 = new TalonFX(ShooterConstants.SHOOTER_1);
   private TalonFX m_shooter2 = new TalonFX(ShooterConstants.SHOOTER_2);
-  private TalonFX m_feeder = new TalonFX(ShooterConstants.FEEDER);
+  private boolean shooter2Inverted = true;
   private AngularVelocity targetSpeed = RPM.of(0);
-  private double targetFeederRPM = 0;
-  private final InterpolatingDoubleTreeMap distanceToRPM = new InterpolatingDoubleTreeMap();
 
   // ========================================================
   // ============= CLASS SETUP ==================
@@ -50,8 +45,8 @@ public class ShooterSubsystem extends SubsystemBase {
               ShooterConstants.SHOOTER_KP,
               ShooterConstants.SHOOTER_KI,
               ShooterConstants.SHOOTER_KD,
-              DegreesPerSecond.of(90),
-              DegreesPerSecondPerSecond.of(45))
+              DegreesPerSecond.of(5000),
+              DegreesPerSecondPerSecond.of(5000))
           .withSimClosedLoopController(
               ShooterConstants.SHOOTER_KP,
               ShooterConstants.SHOOTER_KI,
@@ -74,12 +69,15 @@ public class ShooterSubsystem extends SubsystemBase {
           // Gearing from the motor rotor to final shaft.
           .withGearing(24.0 / 22)
           // Motor properties to prevent over currenting.
-          .withMotorInverted(false)
+          .withMotorInverted(true)
           .withIdleMode(MotorMode.COAST)
-          .withStatorCurrentLimit(Amps.of(40));
+          .withStatorCurrentLimit(Amps.of(60))
+          .withClosedLoopRampRate(Seconds.of(0.25))
+          .withOpenLoopRampRate(Seconds.of(0.25))
+          .withFollowers(Pair.of(m_shooter2, shooter2Inverted));
 
   private SmartMotorController shooterMotorController =
-      new TalonFXWrapper(m_shooter1, DCMotor.getKrakenX60(1), smcConfig);
+      new TalonFXWrapper(m_shooter1, DCMotor.getKrakenX60(2), smcConfig);
 
   private final FlyWheelConfig shooterConfig =
       new FlyWheelConfig(shooterMotorController)
@@ -91,80 +89,39 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private FlyWheel shooter = new FlyWheel(shooterConfig);
 
-  public ShooterSubsystem() {
-    m_feeder.setNeutralMode(NeutralModeValue.Coast);
-    m_shooter2.setNeutralMode(NeutralModeValue.Coast);
-    m_shooter2.setControl(new Follower(m_shooter1.getDeviceID(), MotorAlignmentValue.Opposed));
-
-    for (double[] entry : ShooterConstants.DISTANCE_RPM_MAP) {
-      distanceToRPM.put(entry[0], entry[1]);
-    }
-    ;
-  }
+  public ShooterSubsystem() {}
 
   private final Trigger atSpeed =
-      new Trigger(() -> shooter.isNear(targetSpeed, RPM.of(75)).getAsBoolean());
+      new Trigger(
+          () -> shooterMotorController.getMechanismVelocity().isNear(targetSpeed, RPM.of(80)));
 
   // ========================================================
   // ================== MOTOR ACTIONS =======================
 
-  // SHOOTER ------------------------------------------------
-
-  /**
-   * Sets shooter speed
-   *
-   * @param speed
-   */
   public void setShooterSpeed(AngularVelocity speed) {
-    shooter.setSpeed(speed);
+    shooterMotorController.setVelocity(speed);
     targetSpeed = speed;
   }
 
-  public void setDistanceBasedSpeed(double distanceMeters) {
-    double minDistance = 1.5;
-    double maxDistance = 3.5;
-
-    double clampedDistance = MathUtil.clamp(distanceMeters, minDistance, maxDistance);
-
-    double rpm = distanceToRPM.get(clampedDistance);
-    setShooterSpeed(RPM.of(rpm));
+  public AngularVelocity getShooterVelocity() {
+    return shooterMotorController.getMechanismVelocity();
   }
 
-  public Command setVelocity(AngularVelocity speed) {
+  public Command setVelocity(Supplier<AngularVelocity> speed) {
     return shooter.setSpeed(speed);
   }
 
-  public void setFeeder(double percentOutput) {
-    double output = percentOutput / 100;
-    targetFeederRPM = output * ShooterConstants.SHOOTER_MAX_RPM;
-
-    m_feeder.set(output);
+  public Command setVelocity(AngularVelocity speed) {
+    targetSpeed = speed;
+    return shooter.setSpeed(speed);
   }
 
-  /**
-   * @return Target RPM of the main shooter.
-   */
   public AngularVelocity gettargetSpeed() {
     return targetSpeed;
   }
 
-  public double getCurrentRPM() {
-    return shooter.getSpeed().in(RPM);
-  }
-
-  /**
-   * @return Target RPM of the feeder.
-   */
-  public double getTargetFeederRPM() {
-    return targetFeederRPM;
-  }
-
-  /**
-   * @return RPM of the feeder.
-   */
-  public double getFeederRPM() {
-    double speed = m_feeder.getVelocity().getValueAsDouble();
-    return speed;
+  public AngularVelocity getCurrentRPM() {
+    return shooter.getSpeed();
   }
 
   /**
@@ -184,8 +141,6 @@ public class ShooterSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     shooter.updateTelemetry();
-
-    SmartDashboard.putNumber("FEEDER RPM", getFeederRPM());
   }
 
   @Override

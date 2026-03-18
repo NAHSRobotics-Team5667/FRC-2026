@@ -4,10 +4,15 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Inches;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
+import java.util.Optional;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -33,10 +38,11 @@ public final class Constants {
     public static final double ROLLERKI = 0;
     public static final double ROLLERKD = 0;
 
-    public static final double ROLLER_VELOCITY = 1500;
+    public static final double ROLLER_VELOCITY = 75;
     public static final double ROLLER_FEEDFORWARD = 0;
 
-    public static final double INTAKE_DOWN_POSITION = 65;
+    public static final double INTAKE_DOWN_POSITION = 64;
+    public static final double INTAKE_CARRY_POSITION = 110;
     public static final double INTAKE_UP_POSITION = 143.170126;
   }
 
@@ -48,22 +54,21 @@ public final class Constants {
     public static final double SHOOTER_MAX_RPM = 1;
     public static final double FEEDER_MAX_RPM = 1;
 
-    public static final double SHOOTER_KP = 50;
+    public static final double SHOOTER_KP = 0.0015;
     public static final double SHOOTER_KI = 0;
     public static final double SHOOTER_KD = 0;
-    public static final double SHOOTER_KS = 0;
-    public static final double SHOOTER_KV = 0;
+    public static final double SHOOTER_KS = 0.225;
+    public static final double SHOOTER_KV = 0.130;
     public static final double SHOOTER_KA = 0;
 
-    // placeholders
     public static final double[][] DISTANCE_RPM_MAP = {
-      {1.5, 2400},
-      {2.0, 2600},
-      {2.5, 2800},
-      {3.0, 3000}
+      {1.1684, 1300},
+      {2.0828, 1700},
+      {2.8194, 2000},
+      {3.556, 2500}
     };
 
-    public static final double DEFAULT_RPM = 1500;
+    public static final double DEFAULT_RPM = 1300;
     public static final double RPM_TOLERANCE = 50;
   }
 
@@ -78,22 +83,23 @@ public final class Constants {
     }
   }
 
-  public static class VisionConstants {
-    public static final String LIMELIGHT_FRONT_NAME = "limelight-front";
-    public static final String LIMELIGHT_REAR_NAME = "limelight-rear";
+  public static class PoseConstants {
+    public static Translation2d hubPosition() {
+      final Optional<Alliance> alliance = DriverStation.getAlliance();
+      if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
+        return new Translation2d(Inches.of(182.105), Inches.of(158.845));
+      }
+      return new Translation2d(Inches.of(469.115), Inches.of(158.845));
+    }
 
-    public static final Translation2d BLUE_HUB_POSE = new Translation2d(4.6192143328, 4.0378468646);
+    public static final Pose2d blueHubBasePose =
+        new Pose2d(Inches.of(132), Inches.of(158.845), new Rotation2d(0));
 
-    public static final Translation2d RED_HUB_POSE = new Translation2d(11.9080899252, 4.0394513572);
+    public static final Pose2d redHubBasePose =
+        new Pose2d(Inches.of(519.221), Inches.of(158.845), new Rotation2d(0));
 
     public static final double AutoAlignTranslationTolerance = 0.1; // meters
     public static final double AutoAlignAngleTolerance = 5; // degrees
-
-    public static Translation2d getAllianceHubTranslation() {
-      return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-          ? VisionConstants.BLUE_HUB_POSE
-          : VisionConstants.RED_HUB_POSE;
-    }
   }
 
   public static final class SwerveConstants {

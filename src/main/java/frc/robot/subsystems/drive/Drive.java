@@ -245,6 +245,13 @@ public class Drive extends SubsystemBase {
     runVelocity(new ChassisSpeeds());
   }
 
+  public Rotation2d getDirectionToHub() {
+    final Translation2d hubPosition = Constants.PoseConstants.hubPosition();
+    final Translation2d robotPosition = getPose().getTranslation();
+    final Rotation2d hubDirection = hubPosition.minus(robotPosition).getAngle();
+    return hubDirection;
+  }
+
   /**
    * Stops the drive and turns the modules to an X arrangement to resist movement. The modules will
    * return to their normal orientations the next time a nonzero velocity is requested.
