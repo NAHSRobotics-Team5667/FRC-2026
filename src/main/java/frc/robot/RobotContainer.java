@@ -229,8 +229,8 @@ public class RobotContainer {
         .leftBumper()
         .whileTrue(
             new ParallelCommandGroup(
-                new IntakeRollCommand(-IntakeConstants.ROLLER_VELOCITY),
-                new IndexCommand(-20),
+                new IntakeRollCommand(IntakeConstants.ROLLER_VELOCITY),
+                new IndexCommand(20),
                 intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION))))
         .onFalse(intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_UP_POSITION)));
 

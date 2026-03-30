@@ -42,8 +42,8 @@ public final class Constants {
     public static final double ROLLER_FEEDFORWARD = 0;
 
     public static final double INTAKE_DOWN_POSITION = 60;
-    public static final double INTAKE_CARRY_POSITION = 110;
-    public static final double INTAKE_UP_POSITION = 120;
+    public static final double INTAKE_CARRY_POSITION = 125;
+    public static final double INTAKE_UP_POSITION = 140;
   }
 
   public static class ShooterConstants {
