@@ -38,27 +38,29 @@ public final class Constants {
     public static final double ROLLERKI = 0;
     public static final double ROLLERKD = 0;
 
-    public static final double ROLLER_VELOCITY = 75;
+    public static final double ROLLER_VELOCITY = 90;
     public static final double ROLLER_FEEDFORWARD = 0;
 
-    public static final double INTAKE_DOWN_POSITION = 64;
+    public static final double INTAKE_DOWN_POSITION = 60;
     public static final double INTAKE_CARRY_POSITION = 110;
-    public static final double INTAKE_UP_POSITION = 143.170126;
+    public static final double INTAKE_UP_POSITION = 120;
   }
 
   public static class ShooterConstants {
-    public static final int SHOOTER_1 = 51;
-    public static final int SHOOTER_2 = 52;
-    public static final int FEEDER = 53;
+    public static final int SHOOTER_1 = 51; // leftside
+    public static final int SHOOTER_2 = 52; // leftside
+    public static final int SHOOTER_3 = 53; // rightside
+    public static final int SHOOTER_4 = 54; // rightside
+    public static final int FEEDER = 55;
 
     public static final double SHOOTER_MAX_RPM = 1;
     public static final double FEEDER_MAX_RPM = 1;
 
-    public static final double SHOOTER_KP = 0.0015;
+    public static final double SHOOTER_KP = 0;
     public static final double SHOOTER_KI = 0;
     public static final double SHOOTER_KD = 0;
     public static final double SHOOTER_KS = 0.225;
-    public static final double SHOOTER_KV = 0.130;
+    public static final double SHOOTER_KV = 0.128;
     public static final double SHOOTER_KA = 0;
 
     public static final double[][] DISTANCE_RPM_MAP = {

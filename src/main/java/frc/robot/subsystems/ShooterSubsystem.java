@@ -31,8 +31,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private TalonFX m_shooter1 = new TalonFX(ShooterConstants.SHOOTER_1);
   private TalonFX m_shooter2 = new TalonFX(ShooterConstants.SHOOTER_2);
-  private boolean shooter2Inverted = true;
-  private AngularVelocity targetSpeed = RPM.of(0);
+  private TalonFX m_shooter3 = new TalonFX(ShooterConstants.SHOOTER_3);
+  private TalonFX m_shooter4 = new TalonFX(ShooterConstants.SHOOTER_4);
+
+  private AngularVelocity targetSpeed = RPM.of(1000);
 
   // ========================================================
   // ============= CLASS SETUP ==================
@@ -45,8 +47,8 @@ public class ShooterSubsystem extends SubsystemBase {
               ShooterConstants.SHOOTER_KP,
               ShooterConstants.SHOOTER_KI,
               ShooterConstants.SHOOTER_KD,
-              DegreesPerSecond.of(5000),
-              DegreesPerSecondPerSecond.of(5000))
+              DegreesPerSecond.of(50000000),
+              DegreesPerSecondPerSecond.of(50000000))
           .withSimClosedLoopController(
               ShooterConstants.SHOOTER_KP,
               ShooterConstants.SHOOTER_KI,
@@ -72,9 +74,10 @@ public class ShooterSubsystem extends SubsystemBase {
           .withMotorInverted(true)
           .withIdleMode(MotorMode.COAST)
           .withStatorCurrentLimit(Amps.of(60))
-          .withClosedLoopRampRate(Seconds.of(0.25))
-          .withOpenLoopRampRate(Seconds.of(0.25))
-          .withFollowers(Pair.of(m_shooter2, shooter2Inverted));
+          .withClosedLoopRampRate(Seconds.of(0.001))
+          .withOpenLoopRampRate(Seconds.of(0.001))
+          .withFollowers(
+              Pair.of(m_shooter2, false), Pair.of(m_shooter3, true), Pair.of(m_shooter4, true));
 
   private SmartMotorController shooterMotorController =
       new TalonFXWrapper(m_shooter1, DCMotor.getKrakenX60(2), smcConfig);
@@ -83,7 +86,7 @@ public class ShooterSubsystem extends SubsystemBase {
       new FlyWheelConfig(shooterMotorController)
           .withMOI(MomentOfInertia.ofBaseUnits(0.0058527931, KilogramSquareMeters))
           // Max Speed
-          .withUpperSoftLimit(RPM.of(3000))
+          .withUpperSoftLimit(RPM.of(4000))
           // Telemetry Name + Verbosity
           .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
 
@@ -93,8 +96,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private final Trigger atSpeed =
       new Trigger(
-          () -> shooterMotorController.getMechanismVelocity().isNear(targetSpeed, RPM.of(80)));
-
+          () -> {
+            if (targetSpeed.magnitude() == 0) {
+              return false;
+            }
+            return shooterMotorController.getMechanismVelocity().isNear(targetSpeed, RPM.of(80));
+          });
   // ========================================================
   // ================== MOTOR ACTIONS =======================
 

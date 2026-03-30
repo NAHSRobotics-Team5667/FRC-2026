@@ -47,7 +47,7 @@ public class PulseIntakeCommand extends Command {
     double tPivot = pivotTimer.get();
 
     if ((tPivot % 1) < 0.2) {
-      intake.setArmAngle(Degrees.of(IntakeConstants.INTAKE_CARRY_POSITION));
+      intake.setArmAngle(Degrees.of(IntakeConstants.INTAKE_UP_POSITION));
       ;
     } else {
       intake.setArmAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION));

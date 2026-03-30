@@ -49,15 +49,15 @@ public class IntakeSubsystem extends SubsystemBase {
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(
-              180, 0, 0, DegreesPerSecond.of(2000), DegreesPerSecondPerSecond.of(1000))
+              60, 0, 0, DegreesPerSecond.of(2000), DegreesPerSecondPerSecond.of(1000))
           .withSimClosedLoopController(
               20, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(180))
-          .withFeedforward(new ArmFeedforward(0.2, 0.625, 0))
+          .withFeedforward(new ArmFeedforward(0.15, 0.9, 0))
           .withSimFeedforward(new ArmFeedforward(0, 0, 0))
           .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(38.00 / 14.00, 16)))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(38.00 / 14.00, 5)))
           .withMotorInverted(true)
-          .withIdleMode(MotorMode.COAST)
+          .withIdleMode(MotorMode.BRAKE)
           .withStatorCurrentLimit(Amps.of(40));
 
   private VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);

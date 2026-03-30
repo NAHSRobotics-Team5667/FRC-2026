@@ -13,6 +13,7 @@ import static edu.wpi.first.units.Units.RPM;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -21,21 +22,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.ClimberConstants.ClimbDirection;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.FeedCommand;
 import frc.robot.commands.PulseIntakeCommand;
-import frc.robot.commands.climber.ClimberCommand;
 import frc.robot.commands.intake.IndexCommand;
 import frc.robot.commands.intake.IntakeDeployCommand;
 import frc.robot.commands.intake.IntakeRollCommand;
 import frc.robot.commands.shooter.PrepareShotCommand;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -62,9 +59,12 @@ public class RobotContainer {
   private final Drive drive;
   public final IntakeSubsystem intake = new IntakeSubsystem();
   public final ShooterSubsystem shooter = new ShooterSubsystem();
-  public final ClimberSubsystem climber = new ClimberSubsystem();
+  // public final ClimberSubsystem climber = new ClimberSubsystem();
   public final FeederSubsystem feeder = new FeederSubsystem();
   private final Vision vision;
+
+  private final SlewRateLimiter xSlewRateLimiter = new SlewRateLimiter(3);
+  private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(3);
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -144,26 +144,16 @@ public class RobotContainer {
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     NamedCommands.registerCommand("Auto Start", new IntakeDeployCommand(intake).withTimeout(6));
+
     NamedCommands.registerCommand(
         "Depot Scoring",
         new ParallelCommandGroup(
                 new PrepareShotCommand(shooter, drive::getPose),
-                
-                Commands.sequence(
-                    new WaitCommand(0.25), // small spin-up buffer
+                new FeedCommand(-90, feeder, shooter),
+                new IndexCommand(30),
+                new PulseIntakeCommand(intake))
+            .withTimeout(8));
 
-                    Commands.either(
-                        Commands.parallel(
-                            new FeedCommand(-60, feeder),
-                            new IndexCommand(50),
-                            new PulseIntakeCommand(intake)
-                        ),
-                        Commands.none(),
-                        () -> shooter.atSpeedTrigger().getAsBoolean()
-                    ).repeatedly()
-                )
-        ).withTimeout(8)
-    );
     NamedCommands.registerCommand("Leave for Neutral", new IntakeDeployCommand(intake));
 
     // Set up SysId routines
@@ -198,15 +188,14 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
+            () -> -xSlewRateLimiter.calculate(controller.getLeftY()),
+            () -> -ySlewRateLimiter.calculate(controller.getLeftX()),
             () -> -controller.getRightX()));
 
     // intake.setDefaultCommand(
     //    intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_CARRY_POSITION)));
 
     shooter.setDefaultCommand(shooter.setVelocity(RPM.of(0)));
-    feeder.setDefaultCommand(new FeedCommand(20, feeder));
 
     // Lock to hub when RT button is held
     controller
@@ -241,7 +230,7 @@ public class RobotContainer {
         .whileTrue(
             new ParallelCommandGroup(
                 new IntakeRollCommand(-IntakeConstants.ROLLER_VELOCITY),
-                new IndexCommand(-40),
+                new IndexCommand(-20),
                 intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION))))
         .onFalse(intake.setIntakeAngle(Degrees.of(IntakeConstants.INTAKE_UP_POSITION)));
 
@@ -251,24 +240,21 @@ public class RobotContainer {
 
     controller
         .a()
-        .and(shooter.atSpeedTrigger())
-        .debounce(0.1)
         .whileTrue(
             new ParallelCommandGroup(
-                new FeedCommand(-60, feeder),
-                new IndexCommand(50),
+                new FeedCommand(-90, feeder, shooter),
+                new IndexCommand(60),
                 new PulseIntakeCommand(intake)));
 
-    controller.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP, climber));
-    controller.povDown().whileTrue(new ClimberCommand(ClimbDirection.DOWN, climber));
+    // controller.povUp().whileTrue(new ClimberCommand(ClimbDirection.UP, climber));
+    // controller.povDown().whileTrue(new ClimberCommand(ClimbDirection.DOWN, climber));
 
-    controller.povLeft().whileTrue(
-        new ParallelCommandGroup(
-        new FeedCommand(-60, feeder),
-        new IndexCommand(50))
-    );
+    controller
+        .povLeft()
+        .whileTrue(
+            new ParallelCommandGroup(new FeedCommand(-60, feeder, shooter), new IndexCommand(50)));
 
-    controller.leftStick().onTrue(intake.resetIntakeEncoder());
+    controller.y().onTrue(intake.resetIntakeEncoder());
 
     controller
         .rightTrigger()
