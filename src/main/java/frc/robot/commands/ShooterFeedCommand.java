@@ -4,27 +4,28 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.FeederSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
-public class FeedCommand extends Command {
+public class ShooterFeedCommand extends Command {
 
   private final FeederSubsystem feeder;
-  private final double percentOutput;
   private final ShooterSubsystem shooter;
+  private final double percentOutput;
 
-  public FeedCommand(double percentOutput, FeederSubsystem feeder, ShooterSubsystem shooter) {
+  public ShooterFeedCommand(
+      double percentOutput, FeederSubsystem feeder, ShooterSubsystem shooter) {
     this.feeder = feeder;
-    this.percentOutput = percentOutput;
     this.shooter = shooter;
+    this.percentOutput = percentOutput;
 
     addRequirements(feeder);
   }
 
   @Override
   public void execute() {
-    // if (shooter.atSpeedTrigger().getAsBoolean()) {
-    feeder.setFeeder(percentOutput);
-    // } else {
-    //  feeder.setFeeder(0);
-    // }
+    if (shooter.atSpeedTrigger().getAsBoolean()) {
+      feeder.setFeeder(percentOutput);
+    } else {
+      feeder.setFeeder(0);
+    }
   }
 
   @Override

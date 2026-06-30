@@ -28,8 +28,8 @@ public class PrepareShotCommand extends Command {
                       .interpolate(startValue.shooterRPM, endValue.shooterRPM, t)));
 
   static {
-    distanceToShotMap.put(Inches.of(96.092), new Shot(2200));
-    distanceToShotMap.put(Inches.of(158.327), new Shot(2680));
+    distanceToShotMap.put(Inches.of(96.092), new Shot(2230));
+    distanceToShotMap.put(Inches.of(158.327), new Shot(2710));
     distanceToShotMap.put(Inches.of(53.076), new Shot(1980));
   }
 
@@ -56,7 +56,7 @@ public class PrepareShotCommand extends Command {
   public void execute() {
     final Distance distanceToHub = getDistanceToHub();
     final Shot shot = distanceToShotMap.get(distanceToHub);
-    shooter.setShooterSpeed(RPM.of(shot.shooterRPM));
+    shooter.setShooterSpeed(RPM.of(shot.shooterRPM - 20));
     SmartDashboard.putNumber("Distance to Hub (inches)", distanceToHub.in(Inches));
   }
 

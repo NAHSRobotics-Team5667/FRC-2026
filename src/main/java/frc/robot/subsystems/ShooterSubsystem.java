@@ -74,7 +74,7 @@ public class ShooterSubsystem extends SubsystemBase {
           .withMotorInverted(true)
           .withIdleMode(MotorMode.COAST)
           .withStatorCurrentLimit(Amps.of(60))
-          .withClosedLoopRampRate(Seconds.of(0.001))
+          .withClosedLoopRampRate(Seconds.of(0.2))
           .withOpenLoopRampRate(Seconds.of(0.001))
           .withFollowers(
               Pair.of(m_shooter2, false), Pair.of(m_shooter3, true), Pair.of(m_shooter4, true));

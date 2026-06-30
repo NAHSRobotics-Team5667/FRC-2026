@@ -11,7 +11,7 @@ public class FullIndexCommand extends ParallelCommandGroup {
   public FullIndexCommand(
       FeederSubsystem feeder, IntakeSubsystem intake, ShooterSubsystem shooter) {
     addCommands(
-        new FeedCommand(-60, feeder, shooter),
+        new ShooterFeedCommand(-60, feeder, shooter),
         new IndexCommand(50),
         new PulseIntakeCommand(intake));
   }

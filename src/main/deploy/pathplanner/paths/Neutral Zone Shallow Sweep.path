@@ -3,45 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.8935662650602403,
-        "y": 6.919915662650602
+        "x": 3.107475035663337,
+        "y": 5.1930099857346645
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.706693362342291,
-        "y": 7.696886607015348
+        "x": 2.9106880540774935,
+        "y": 6.0350854814458454
       },
       "isLocked": false,
       "linkedName": "Shallow Shot"
     },
     {
       "anchor": {
-        "x": 5.854975903614458,
-        "y": 7.335168674698796
+        "x": 3.3144935805991436,
+        "y": 7.379643366619116
       },
       "prevControl": {
-        "x": 5.605208005282085,
-        "y": 7.418971960786349
+        "x": 2.5651116529639317,
+        "y": 7.343418383222905
       },
       "nextControl": {
-        "x": 6.66950699545568,
-        "y": 7.061873417091507
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 6.0079638554216865,
-        "y": 4.47210843373494
-      },
-      "prevControl": {
-        "x": 6.210203843351349,
-        "y": 5.058460873349836
-      },
-      "nextControl": {
-        "x": 5.926448356510978,
-        "y": 4.235771336694847
+        "x": 4.056651966177147,
+        "y": 7.415519165332011
       },
       "isLocked": false,
       "linkedName": null
@@ -52,8 +36,40 @@
         "y": 7.19310843373494
       },
       "prevControl": {
-        "x": 7.140211475000197,
-        "y": 6.45693328027696
+        "x": 5.814517782958973,
+        "y": 7.549019229994313
+      },
+      "nextControl": {
+        "x": 6.744940450425564,
+        "y": 6.622686515665756
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.172,
+        "y": 3.9767760342368046
+      },
+      "prevControl": {
+        "x": 6.417167634977594,
+        "y": 3.745009403910975
+      },
+      "nextControl": {
+        "x": 5.7340228245363765,
+        "y": 4.3908131241084165
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.172,
+        "y": 7.496091298145506
+      },
+      "prevControl": {
+        "x": 6.833808844507845,
+        "y": 7.229773163982606
       },
       "nextControl": null,
       "isLocked": false,
@@ -62,11 +78,15 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.3170124481327819,
+      "waypointRelativePos": 0.7995735607675742,
       "rotationDegrees": 0.0
     },
     {
-      "waypointRelativePos": 1.546058091286297,
+      "waypointRelativePos": 1.5607675906183147,
+      "rotationDegrees": 0.0
+    },
+    {
+      "waypointRelativePos": 2.2942430703624446,
       "rotationDegrees": -90.0
     }
   ],
@@ -81,7 +101,7 @@
     },
     {
       "name": "Finished Neutral Fuel",
-      "waypointRelativePos": 2.3612903225806416,
+      "waypointRelativePos": 2.7,
       "endWaypointRelativePos": null,
       "command": null
     }
@@ -96,13 +116,13 @@
   },
   "goalEndState": {
     "velocity": 4.34,
-    "rotation": 170.18274036244497
+    "rotation": 165.96375653207352
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -65.32313682966289
+    "rotation": -37.45605447642257
   },
   "useDefaultConstraints": true
 }

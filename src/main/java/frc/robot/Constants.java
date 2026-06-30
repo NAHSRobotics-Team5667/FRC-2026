@@ -43,7 +43,7 @@ public final class Constants {
 
     public static final double INTAKE_DOWN_POSITION = 60;
     public static final double INTAKE_CARRY_POSITION = 125;
-    public static final double INTAKE_UP_POSITION = 140;
+    public static final double INTAKE_UP_POSITION = 150;
   }
 
   public static class ShooterConstants {
@@ -56,12 +56,12 @@ public final class Constants {
     public static final double SHOOTER_MAX_RPM = 1;
     public static final double FEEDER_MAX_RPM = 1;
 
-    public static final double SHOOTER_KP = 0;
+    public static final double SHOOTER_KP = 0.04;
     public static final double SHOOTER_KI = 0;
-    public static final double SHOOTER_KD = 0;
+    public static final double SHOOTER_KD = 0.002;
     public static final double SHOOTER_KS = 0.225;
-    public static final double SHOOTER_KV = 0.128;
-    public static final double SHOOTER_KA = 0;
+    public static final double SHOOTER_KV = 0.126;
+    public static final double SHOOTER_KA = 0.05;
 
     public static final double[][] DISTANCE_RPM_MAP = {
       {1.1684, 1300},
@@ -89,9 +89,17 @@ public final class Constants {
     public static Translation2d hubPosition() {
       final Optional<Alliance> alliance = DriverStation.getAlliance();
       if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
-        return new Translation2d(Inches.of(182.105), Inches.of(158.845));
+        return new Translation2d(Inches.of(182.25), Inches.of(158));
       }
-      return new Translation2d(Inches.of(469.115), Inches.of(158.845));
+      return new Translation2d(Inches.of(469.115), Inches.of(158));
+    }
+
+    public static Rotation2d passingDirection() {
+      final Optional<Alliance> alliance = DriverStation.getAlliance();
+      if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
+        return new Rotation2d(0);
+      }
+      return new Rotation2d(180);
     }
 
     public static final Pose2d blueHubBasePose =

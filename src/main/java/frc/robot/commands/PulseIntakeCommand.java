@@ -37,20 +37,20 @@ public class PulseIntakeCommand extends Command {
 
     if ((tRoller % 1) < 0.5) {
       intake.setRollerVelocity(
-          -0.2 * IntakeConstants.ROLLER_VELOCITY, IntakeConstants.ROLLER_FEEDFORWARD);
+          -0.8 * IntakeConstants.ROLLER_VELOCITY, IntakeConstants.ROLLER_FEEDFORWARD);
       ;
     } else {
-      intake.setRollerVelocity(0, IntakeConstants.ROLLER_FEEDFORWARD);
+      intake.setRollerVelocity(IntakeConstants.ROLLER_VELOCITY, IntakeConstants.ROLLER_FEEDFORWARD);
       ;
     }
 
     double tPivot = pivotTimer.get();
 
-    if ((tPivot % 1) < 0.2) {
-      intake.setArmAngle(Degrees.of(IntakeConstants.INTAKE_UP_POSITION));
+    if ((tPivot % 2) < 0.5) {
+      intake.setIntakeDeployMotor(12);
       ;
     } else {
-      intake.setArmAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION));
+      intake.setIntakeDeployMotor(-0.3);
       ;
     }
   }
@@ -58,6 +58,7 @@ public class PulseIntakeCommand extends Command {
   @Override
   public void end(boolean interrupted) {
     intake.setRollerVelocity(0, 0);
+    intake.setArmAngle(Degrees.of(IntakeConstants.INTAKE_DOWN_POSITION));
   }
 
   @Override

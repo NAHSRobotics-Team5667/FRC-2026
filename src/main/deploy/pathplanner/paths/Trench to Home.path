@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 6.172,
-        "y": 7.19310843373494
+        "y": 7.496091298145506
       },
       "prevControl": null,
       "nextControl": {
         "x": 5.628999988880721,
-        "y": 7.456871660537592
+        "y": 7.7598545249481585
       },
       "isLocked": false,
       "linkedName": "Neutral Zone Endpoint"
@@ -85,7 +85,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 4.507992,
-    "rotation": 170.18274036244497
+    "rotation": 165.96375653207352
   },
   "useDefaultConstraints": true
 }

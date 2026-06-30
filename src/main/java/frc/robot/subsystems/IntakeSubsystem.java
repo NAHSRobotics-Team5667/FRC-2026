@@ -49,13 +49,13 @@ public class IntakeSubsystem extends SubsystemBase {
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(
-              60, 0, 0, DegreesPerSecond.of(2000), DegreesPerSecondPerSecond.of(1000))
+              25, 0, 1, DegreesPerSecond.of(1500), DegreesPerSecondPerSecond.of(1000))
           .withSimClosedLoopController(
               20, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(180))
-          .withFeedforward(new ArmFeedforward(0.15, 0.9, 0))
+          .withFeedforward(new ArmFeedforward(0.1, 0.2, 0.5))
           .withSimFeedforward(new ArmFeedforward(0, 0, 0))
-          .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(38.00 / 14.00, 5)))
+          .withTelemetry("IntakeMotor", TelemetryVerbosity.HIGH)
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(38.00 / 14.00, 12)))
           .withMotorInverted(true)
           .withIdleMode(MotorMode.BRAKE)
           .withStatorCurrentLimit(Amps.of(40));
@@ -67,11 +67,10 @@ public class IntakeSubsystem extends SubsystemBase {
 
   private ArmConfig armCfg =
       new ArmConfig(talonMotorController)
-          .withHardLimit(Degrees.of(-4.647), Degrees.of(143.170126))
-          .withStartingPosition(Degrees.of(143.170126))
+          .withStartingPosition(Degrees.of(IntakeConstants.INTAKE_UP_POSITION))
           .withLength(Inches.of(8))
           .withMass(Pounds.of(4))
-          .withTelemetry("Arm", TelemetryVerbosity.HIGH);
+          .withTelemetry("Intake", TelemetryVerbosity.HIGH);
 
   private Arm arm = new Arm(armCfg);
 
@@ -83,6 +82,10 @@ public class IntakeSubsystem extends SubsystemBase {
     return arm.set(dutycycle);
   }
 
+  public void setIntakeDeployMotor(double dutycycle) {
+    talonMotorController.setDutyCycle(dutycycle);
+  }
+
   public Command sysId() {
     return arm.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
   }
@@ -90,25 +93,13 @@ public class IntakeSubsystem extends SubsystemBase {
   public Command resetIntakeEncoder() {
     return Commands.sequence(
         // Drive intake downward into hardstop
-        this.run(() -> arm.set(-0.2)).withTimeout(0.4),
+        setIntakeDeploy(-4).withTimeout(1),
+        setIntakeDeploy(0).withTimeout(0.1),
         this.runOnce(
             () -> {
-              arm.set(0);
               talonMotorController.setEncoderPosition(
                   Degrees.of(Constants.IntakeConstants.INTAKE_DOWN_POSITION));
             }));
-  }
-
-  public Command agitationCommand() {
-
-    return Commands.sequence(
-            Commands.waitSeconds(1.5),
-            runOnce(
-                () -> arm.setAngle(Degrees.of(Constants.IntakeConstants.INTAKE_CARRY_POSITION))),
-            Commands.waitSeconds(0.25),
-            runOnce(() -> arm.setAngle(Degrees.of(Constants.IntakeConstants.INTAKE_DOWN_POSITION))),
-            Commands.waitSeconds(0.25))
-        .repeatedly();
   }
 
   public IntakeSubsystem() {

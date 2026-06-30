@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.871710843373494,
-        "y": 7.389807228915663
+        "x": 4.414279600570612,
+        "y": 7.431398002853067
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.819808953305552,
-        "y": 7.3225144059085405
+        "x": 6.308746364098166,
+        "y": 7.242162675807703
       },
       "isLocked": false,
       "linkedName": null
@@ -20,8 +20,8 @@
         "y": 7.19310843373494
       },
       "prevControl": {
-        "x": 5.035518072289157,
-        "y": 7.641144578313254
+        "x": 4.728819855077324,
+        "y": 7.376131844482555
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,14 +31,7 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "Crossed Trench",
-      "waypointRelativePos": 1.0,
-      "endWaypointRelativePos": null,
-      "command": null
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
